@@ -1,0 +1,32 @@
+{
+  "name": "gsheet-group-organiser",
+  "version": "1.0.0",
+  "description": "google app scripts",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape -r ts-node/register -r babel-register './test/**/*.ts' | tap-spec",
+    "push": "cd ./src && clasp push"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mbudm/gsheet-group-organiser.git"
+  },
+  "author": "Steve Roberts",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mbudm/gsheet-group-organiser/issues"
+  },
+  "homepage": "https://github.com/mbudm/gsheet-group-organiser#readme",
+  "dependencies": {
+    "@types/google-apps-script": "0.0.33",
+    "@types/tape": "^4.2.32",
+    "babel-register": "^6.26.0",
+    "pre-commit": "^1.2.2",
+    "tap-spec": "^5.0.0",
+    "tape": "^4.9.1",
+    "tape-watch": "^2.3.0",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.12.0",
+    "typescript": "^3.2.2"
+  }
+}
