@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "tape -r ts-node/register -r babel-register './test/**/*.ts' | tap-spec",
+    "test-watch": "tape-watch  -r ts-node/register -r babel-register './test/**/*.ts'  | tap-spec",
     "push": "cd ./src && clasp push"
   },
   "repository": {
