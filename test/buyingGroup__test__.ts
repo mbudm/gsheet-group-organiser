@@ -32,8 +32,6 @@ const orderDataPurchases = [
   [...itemData[1], "8", "2"]
 ]
 
-
-
 const invoiceFooterData = [
   ["Thank you for being a part of our Fabulous Fair Food Buying Group!"],
   ["Please pay amount due by 3pm, Wednesday, 14th December by calling our Customer Service Team on:"],
@@ -77,5 +75,24 @@ test("getBuyerItems", (t) => {
 test("createInvoiceData", (t) => {
   const result = buyingGroup.createInvoiceData(orderDataPurchases, invoiceFooterData);
   t.deepEqual(result, invoiceData);
+  t.end();
+});
+
+test("padRow", (t) => {
+  const arr = ["some", "vals", "short"];
+  const result = buyingGroup.padRow(arr, 5);
+  t.deepEqual(arr.length, 5);
+  t.end();
+});
+
+test("padData", (t) => {
+  const arr = [
+    ["hai", "kus", "are", "eas", "y"],
+    ["but", "some", "times", "they", "don't", "make", "sense"],
+    ["re", "frig", "er", "a", "tor"],
+  ];
+  const result = buyingGroup.padData(arr);
+  t.deepEqual(result[0].length, result[1].length);
+  t.deepEqual(result[2].length, result[1].length);
   t.end();
 });

@@ -74,7 +74,19 @@ function getSheetData(sheetName){
     var spreadsheet = SpreadsheetApp.getActive()
     var namedSheet = spreadsheet.getSheetByName(sheetName);
     namedSheet.activate();
-    return namedSheet.getDataRange()
+    const values = namedSheet.getDataRange().getValues();
+    return values.slice(1); // remove header row
+}
+export function padRow(arr, len){
+    while(true){
+        if(arr.push('') >= len)
+        break;
+    }
+    return arr;
+}
+export function padData(data){
+    const maxWidth = data.reduce((acc, row) => Math.max(acc, row.length), 0);
+    return data.map(row => row.length === maxWidth ? row : padRow(row, maxWidth));
 }
 
 function createNewSheet(name, data, protections){
@@ -83,8 +95,12 @@ function createNewSheet(name, data, protections){
     */
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const newSheet = ss.insertSheet(name); 
-    const range = newSheet.getRange(0, 0, data.length, data[0].length);
-    range.setValues(data);
+    const paddedData = padData(data);
+    console.log('creating a sheet with data:', paddedData.length, paddedData[0].length);
+    console.log(paddedData);
+
+    const range = newSheet.getRange(1, 1, paddedData.length, paddedData[0].length);
+    range.setValues(paddedData);
 }
 
 function createInvoiceSheet(invoice, admins){
@@ -133,7 +149,8 @@ export function createInvoiceData(orderFormData, invoiceFooterData){
 }
 
 export function createOrderFormData(itemData, buyerData){
-    const headings = [...itemsColumns].concat(buyerData.map(buyer => buyer[0]));
+    const buyerHeadings = buyerData.map(buyer => buyer[0]);
+    const headings = [...itemsColumns, ...buyerHeadings];
     return [
         headings,
         ...itemData
