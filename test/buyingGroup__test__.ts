@@ -3,7 +3,7 @@ import * as buyingGroup from '../src/buyingGroup';
 
 const itemData = [
   [1, "Apricots", "5kg", "74.75", "14.95", "1kg", "5"],
-  [2,	"Cherries", "5kg", "112.50", "11.25", "500gm", "10"]
+  [2, "Cherries", "5kg", "112.50", "11.25", "500gm", "10"]
 ];
 
 const buyerData = [

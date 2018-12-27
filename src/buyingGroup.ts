@@ -51,6 +51,23 @@ function createOrderSheet_(){
     const itemData = getSheetData(ITEMS_SHEET_NAME);
     const buyerData = getSheetData(BUYERS_SHEET_NAME);
     const orderFormData = createOrderFormData(itemData, buyerData);
+    const admins = getSheetData(ADMINS_SHEET_NAME);
+    const protections = getOrderSheetProtections(admins, buyerData, itemData);
+    createNewSheet(ORDER_FORM_SHEET_NAME, orderFormData, protections);
+}
+
+function getOrderSheetProtections(admin, buyers, itemData){
+    const buyersWithRange = buyers.map((buyer, buyerIdx) => {
+        const range = [1, itemsColumns.length + buyerIdx, itemData.length];
+        return {
+            email: buyer[1],
+            range
+        }
+    });
+    return [
+        ...admin,
+        buyersWithRange
+    ];
 }
 
 function getSheetData(sheetName){
@@ -64,6 +81,10 @@ function createNewSheet(name, data, protections){
     /*
     prompt to overwrite if sheet exists?
     */
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const newSheet = ss.insertSheet(name); 
+    const range = newSheet.getRange(0, 0, data.length, data[0].length);
+    range.setValues(data);
 }
 
 function createInvoiceSheet(invoice, admins){
@@ -108,15 +129,6 @@ export function createInvoiceData(orderFormData, invoiceFooterData){
             ...invoiceFooterData
         ];
     })
-    /*
-    Add friendly name and email as header
-    get the column for this buyer
-    for each row, 
-        filter if no items
-        map to Item, Share size, Share cost, Purchased, Totals
-        Calc total due (validate against otal row?)
-    Add footer info
-    */
     return invoices;
 }
 
