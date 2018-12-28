@@ -38,11 +38,16 @@ const INVOICE_FOOTER_SHEET_NAME = 'Invoice footer';
 
 
 export function getSheetData(sheetName){
-  var spreadsheet = SpreadsheetApp.getActive()
-  var namedSheet = spreadsheet.getSheetByName(sheetName);
-  namedSheet.activate();
-  const values = namedSheet.getDataRange().getValues();
-  return values.slice(1); // remove header row
+  try {
+    console.log('getSheetData', sheetName);
+    const spreadsheet = SpreadsheetApp.getActive()
+    const namedSheet = spreadsheet.getSheetByName(sheetName);
+    namedSheet.activate();
+    const values = namedSheet.getDataRange().getValues();
+    return values.slice(1); // remove header row
+  } catch(e) {
+    console.error(e, sheetName);
+  }
 }
 
 export function padRow(arr, len){
@@ -67,20 +72,41 @@ export function createNewSheet(name, data, protections){
   console.log('creating a sheet with data:', paddedData.length, paddedData[0].length);
   console.log(paddedData);
 
-  const range = newSheet.getRange(1, 1, paddedData.length, paddedData[0].length);
-  range.setValues(paddedData);
+  const rangeForValues = newSheet.getRange(1, 1, paddedData.length, paddedData[0].length);
+  rangeForValues.setValues(paddedData);
 
   // protect all sheets by default
   const sheetProtection = newSheet.protect().setDescription('Default generated sheet protection');
   protections.forEach((user) => {
     if(typeof user === 'string'){
       sheetProtection.addEditor(user);
-    }else{
+    } else {
+      console.log('protecting a range for', user)
       // protect a range
-      // eg  { email: '', range: [2, 4, 4] },
-      const range = newSheet.getRange(user.range[0], user.range[1], user.range[2]);
-      const rangeProtection = range.protect().setDescription('Range protected for specific users');
+      // user shape eg  { email: '', range: [2, 4, 4] },
+      const rangeForProtecting = newSheet.getRange(user.range[0], user.range[1], user.range[2]);
+      const rangeProtection = rangeForProtecting.protect().setDescription(`Range for user: ${user.email}`);
+
+      // associate with a name for easier debugging
+      const name = `range_${user.email}`.replace(/[^\w\s]|_/g, "")
+        .replace(/\s+/g, " ");
+      ss.setNamedRange(name, rangeForProtecting);
+      rangeProtection.setRangeName(name);
+
+      // From the docs (Protection.addEditor(user)):
+      // This method does not automatically give the user permission to edit the
+      // spreadsheet itself; to do that in addition, call Spreadsheet.addEditor(user).
+      ss.addEditors([user.email]);
+      // clear all editors, existing seem to get added by default
+      rangeProtection.removeEditors(rangeProtection.getEditors().map(user => user.getEmail()));
       rangeProtection.addEditor(user.email);
+
+      // check it all worked
+      const rangeNotation = rangeForProtecting.getA1Notation();
+      const rangeDescription = rangeProtection.getDescription();
+      const rangeEditors = rangeProtection.getEditors();
+      const rangeProtectionType = rangeProtection.getProtectionType();
+      console.log('range pretection details', rangeNotation, rangeDescription, rangeEditors, rangeProtectionType);
     }
   });
 }
@@ -93,7 +119,7 @@ function createInvoices_(){
     const invoiceFooterData = getSheetData(INVOICE_FOOTER_SHEET_NAME);
     const buyerData = getSheetData(BUYERS_SHEET_NAME);
     const invoicesData = createInvoiceData(orderFormData, invoiceFooterData, buyerData);
-    const admins = getSheetData(ADMINS_SHEET_NAME);
+    const admins = getAdminEmails();
     // write a new sheet for each invoice
     invoicesData.forEach((invoice) => createInvoiceSheet(invoice, admins));
 }
@@ -102,11 +128,16 @@ function createOrderSheet_(){
     const itemData = getSheetData(ITEMS_SHEET_NAME);
     const buyerData = getSheetData(BUYERS_SHEET_NAME);
     const orderFormData = createOrderFormData(itemData, buyerData);
-    const admins = getSheetData(ADMINS_SHEET_NAME);
+    const admins = getAdminEmails();
     const protections = getOrderSheetProtections(admins, buyerData, itemData);
     createNewSheet(ORDER_FORM_SHEET_NAME, orderFormData, protections);
 }
 
+// admins
+function getAdminEmails(){
+  const adminData = getSheetData(ADMINS_SHEET_NAME);
+  return adminData.reduce((acc, val) => acc.concat(val), []);
+}
 
 // Order sheet
 
@@ -114,7 +145,7 @@ export function getOrderSheetProtections(admin, buyers, itemData){
     const buyersWithRange = buyers.map((buyer, buyerIdx) => {
         const range = [2, orderSheetColumns.length + buyerIdx + 1, itemData.length];
         return {
-            email: buyer[1],
+            email: buyer[2],
             range
         }
     });
