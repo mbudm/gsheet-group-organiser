@@ -129,38 +129,54 @@ function createInvoiceSheet(invoice, admins){
     createNewSheet(name, invoice, users);
 }
 
+function getItemTotal(purchased, shareCost){
+  const result = Math.round( (purchased * shareCost) * 100 )/ 100;
+  console.log('getItemTotal', purchased, shareCost, result);
+  return result;
+}
+
 export function getBuyerItems(orderFormData, buyerIdx){
-    let runningTotal = 0;
-    const buyerItems = orderFormData.filter((row, idx) => {
+    return orderFormData.filter((row, idx) => {
         return idx > 0 && parseInt(row[buyerIdx]) > 0;
     }).map((r) => {
-        const itemTotal = Math.round( (r[buyerIdx] * r[4]) * 100 )/ 100;
-        runningTotal += itemTotal;
+        const itemTotal = getItemTotal(r[buyerIdx], r[5]);
         return [
             r[1], // 'Item',
-            r[5], // 'Share size',
-            r[4], // 'Share cost'
+            r[4], // 'Share size',
+            r[5], // 'Share cost'
             r[buyerIdx], // 'Purchased',
-            itemTotal// 'Totals'
+            itemTotal // 'Totals'
         ];
     });
-    return buyerItems.concat([[
-        "",
-        "",
-        "",
-        "Total Due",
-        runningTotal
-    ]]);
+}
+
+function getTotalRow(buyerItems){
+  const total = buyerItems.reduce((total, item) => total + item[4], 0)
+  return [
+    "",
+    "",
+    "",
+    "Total Due",
+    total
+  ];
 }
 
 export function createInvoiceData(orderFormData, invoiceFooterData, buyerData){
-    const invoices = buyerData.map((buyer, buyerIdx) => {
+    const invoices = buyerData.filter((b, bIdx) => {
+        const bOrderColIdx = orderSheetColumns.length + bIdx;
+        const bItems = getBuyerItems(orderFormData, bOrderColIdx);
+        return bItems.length > 0;
+      })
+      .map((buyer, buyerIdx) => {
         const buyerOrderColIdx = orderSheetColumns.length + buyerIdx;
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
+        const totalRow = getTotalRow(buyerItems);
+        console.log('buyer:', buyerIdx, buyerItems.length)
         return [
             buyer.slice(1,3),
             [...invoiceColumns],
             ...buyerItems,
+            totalRow,
             ...invoiceFooterData
         ];
     })

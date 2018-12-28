@@ -2,8 +2,8 @@ import * as test from "tape";
 import * as buyingGroup from '../src/buyingGroup';
 
 const itemData = [
-  [1, "Apricots", "5kg", "74.75", "14.95", "1kg", "5"],
-  [2, "Cherries", "5kg", "112.50", "11.25", "500gm", "10"]
+  [1, "Apricots", "5kg", "74.75", "1kg", "14.95", "5"],
+  [2, "Cherries", "5kg", "112.50", "500gm", "11.25", "10"]
 ];
 
 const buyerData = [
@@ -66,18 +66,18 @@ test("createOrderFormData", (t) => {
 test("getBuyerItems - 1st buyer", (t) => {
   const result = buyingGroup.getBuyerItems(orderDataPurchases, buyingGroup.orderSheetColumns.length);
   const expected = invoiceData[0].slice(2);
+  t.equal(result.length, 2);
   t.deepEqual(result[0], expected[0]);
   t.deepEqual(result[1], expected[1]);
-  t.deepEqual(result[2], expected[2]);
   t.end();
 });
 
 test("getBuyerItems - 2nd buyer", (t) => {
   const result = buyingGroup.getBuyerItems(orderDataPurchases, buyingGroup.orderSheetColumns.length + 1);
   const expected = invoiceData[1].slice(2);
+  t.equal(result.length, 2);
   t.deepEqual(result[0], expected[0]);
   t.deepEqual(result[1], expected[1]);
-  t.deepEqual(result[2], expected[2]);
   t.end();
 });
 
