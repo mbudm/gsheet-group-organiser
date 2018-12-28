@@ -165,13 +165,14 @@ export function createInvoiceData(orderFormData, invoiceFooterData, buyerData){
     const invoices = buyerData.filter((b, bIdx) => {
         const bOrderColIdx = orderSheetColumns.length + bIdx;
         const bItems = getBuyerItems(orderFormData, bOrderColIdx);
+
+        console.log('buyer filter:', bIdx, bItems.length, b[0]);
         return bItems.length > 0;
       })
       .map((buyer, buyerIdx) => {
         const buyerOrderColIdx = orderSheetColumns.length + buyerIdx;
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
         const totalRow = getTotalRow(buyerItems);
-        console.log('buyer:', buyerIdx, buyerItems.length)
         return [
             buyer.slice(1,3),
             [...invoiceColumns],
