@@ -69,6 +69,20 @@ export function createNewSheet(name, data, protections){
 
   const range = newSheet.getRange(1, 1, paddedData.length, paddedData[0].length);
   range.setValues(paddedData);
+
+  // protect all sheets by default
+  const sheetProtection = newSheet.protect().setDescription('Default generated sheet protection');
+  protections.forEach((user) => {
+    if(typeof user === 'string'){
+      sheetProtection.addEditor(user);
+    }else{
+      // protect a range
+      // eg  { email: '', range: [2, 4, 4] },
+      const range = newSheet.getRange(user.range[0], user.range[1], user.range[2]);
+      const rangeProtection = range.protect().setDescription('Range protected for specific users');
+      rangeProtection.addEditor(user.email);
+    }
+  });
 }
 
 
@@ -106,7 +120,7 @@ export function getOrderSheetProtections(admin, buyers, itemData){
     });
     return [
         ...admin,
-        buyersWithRange
+        ...buyersWithRange
     ];
 }
 

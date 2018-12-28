@@ -13,10 +13,8 @@ test("getOrderSheetProtections", t => {
 
   const expected = [
     ...admin,
-    [
-      { email: buyers[0][1], range: [2, orderSheetColumns.length + 1, itemData.length] },
-      { email: buyers[1][1], range: [2, orderSheetColumns.length + 2, itemData.length] }
-    ]
+    { email: buyers[0][1], range: [2, orderSheetColumns.length + 1, itemData.length] },
+    { email: buyers[1][1], range: [2, orderSheetColumns.length + 2, itemData.length] }
   ];
   t.deepEqual(result, expected);
   t.end();
