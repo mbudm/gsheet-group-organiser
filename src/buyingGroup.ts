@@ -125,7 +125,7 @@ export function createOrderFormData(itemData, buyerData){
 
 function createInvoiceSheet(invoice, admins){
     const users = admins.concat(invoice[0][1]);
-    const name = invoice[0][0];
+    const name = `Invoice' ${invoice[0][0]}`;
     createNewSheet(name, invoice, users);
 }
 
