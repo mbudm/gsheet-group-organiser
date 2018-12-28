@@ -29,14 +29,45 @@ const BUYERS_SHEET_NAME = 'Buyers';
 const ADMINS_SHEET_NAME = 'Admin users';
 const INVOICE_FOOTER_SHEET_NAME = 'Invoice footer';
 
-function onOpen() {
-    var spreadsheet = SpreadsheetApp.getActive();
-    var menuItems = [
-        {name: 'Create Order Sheet', functionName: 'createOrderSheet_'},
-        {name: 'Generate Invoices', functionName: 'createInvoices_'}
-    ];
-    spreadsheet.addMenu('Buying Group', menuItems);
+// sheet helpers
+
+
+export function getSheetData(sheetName){
+  var spreadsheet = SpreadsheetApp.getActive()
+  var namedSheet = spreadsheet.getSheetByName(sheetName);
+  namedSheet.activate();
+  const values = namedSheet.getDataRange().getValues();
+  return values.slice(1); // remove header row
 }
+
+export function padRow(arr, len){
+  while(true){
+      if(arr.push('') >= len)
+      break;
+  }
+  return arr;
+}
+export function padData(data){
+  const maxWidth = data.reduce((acc, row) => Math.max(acc, row.length), 0);
+  return data.map(row => row.length === maxWidth ? row : padRow(row, maxWidth));
+}
+
+export function createNewSheet(name, data, protections){
+  /*
+  prompt to overwrite if sheet exists?
+  */
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const newSheet = ss.insertSheet(name);
+  const paddedData = padData(data);
+  console.log('creating a sheet with data:', paddedData.length, paddedData[0].length);
+  console.log(paddedData);
+
+  const range = newSheet.getRange(1, 1, paddedData.length, paddedData[0].length);
+  range.setValues(paddedData);
+}
+
+
+// menu event handlers
 
 function createInvoices_(){
     const orderFormData = getSheetData(ORDER_FORM_SHEET_NAME);
@@ -56,7 +87,10 @@ function createOrderSheet_(){
     createNewSheet(ORDER_FORM_SHEET_NAME, orderFormData, protections);
 }
 
-function getOrderSheetProtections(admin, buyers, itemData){
+
+// Order sheet
+
+export function getOrderSheetProtections(admin, buyers, itemData){
     const buyersWithRange = buyers.map((buyer, buyerIdx) => {
         const range = [1, itemsColumns.length + buyerIdx, itemData.length];
         return {
@@ -70,41 +104,21 @@ function getOrderSheetProtections(admin, buyers, itemData){
     ];
 }
 
-function getSheetData(sheetName){
-    var spreadsheet = SpreadsheetApp.getActive()
-    var namedSheet = spreadsheet.getSheetByName(sheetName);
-    namedSheet.activate();
-    const values = namedSheet.getDataRange().getValues();
-    return values.slice(1); // remove header row
-}
-export function padRow(arr, len){
-    while(true){
-        if(arr.push('') >= len)
-        break;
-    }
-    return arr;
-}
-export function padData(data){
-    const maxWidth = data.reduce((acc, row) => Math.max(acc, row.length), 0);
-    return data.map(row => row.length === maxWidth ? row : padRow(row, maxWidth));
+export function createOrderFormData(itemData, buyerData){
+  const buyerHeadings = buyerData.map(buyer => buyer[0]);
+  const headings = [...itemsColumns, ...buyerHeadings];
+  return [
+      headings,
+      ...itemData
+  ];
 }
 
-function createNewSheet(name, data, protections){
-    /*
-    prompt to overwrite if sheet exists?
-    */
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const newSheet = ss.insertSheet(name); 
-    const paddedData = padData(data);
-    console.log('creating a sheet with data:', paddedData.length, paddedData[0].length);
-    console.log(paddedData);
 
-    const range = newSheet.getRange(1, 1, paddedData.length, paddedData[0].length);
-    range.setValues(paddedData);
-}
+
+// invoice sheet
 
 function createInvoiceSheet(invoice, admins){
-    const users = admins.concat(invoice[0][1]); 
+    const users = admins.concat(invoice[0][1]);
     const name = invoice[0][0];
     createNewSheet(name, invoice, users);
 }
@@ -116,7 +130,7 @@ export function getBuyerItems(orderFormData, buyerIdx){
     }).map((r) => {
         const itemTotal = Math.round( (r[buyerIdx] * r[4]) * 100 )/ 100;
         runningTotal += itemTotal;
-        return [ 
+        return [
             r[1], // 'Item',
             r[5], // 'Share size',
             r[4], // 'Share cost'
@@ -146,13 +160,4 @@ export function createInvoiceData(orderFormData, invoiceFooterData){
         ];
     })
     return invoices;
-}
-
-export function createOrderFormData(itemData, buyerData){
-    const buyerHeadings = buyerData.map(buyer => buyer[0]);
-    const headings = [...itemsColumns, ...buyerHeadings];
-    return [
-        headings,
-        ...itemData
-    ];
 }
