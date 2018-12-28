@@ -40,7 +40,7 @@ const invoiceFooterData = [
 
 const invoiceData = [
   [
-    [buyerData[0][0]],
+    [buyerData[0][1], buyerData[0][2]],
     [...buyingGroup.invoiceColumns],
     ["Apricots", "1kg", "14.95", "3", 44.85],
     ["Cherries", "500gm", "11.25", "8", 90],
@@ -48,7 +48,7 @@ const invoiceData = [
     ...invoiceFooterData
   ],
   [
-    [buyerData[1][0]],
+    [buyerData[1][1], buyerData[1][2]],
     [...buyingGroup.invoiceColumns],
     ["Apricots", "1kg", "14.95", "2", 29.90],
     ["Cherries", "500gm", "11.25", "2", 22.50],
@@ -82,7 +82,7 @@ test("getBuyerItems - 2nd buyer", (t) => {
 });
 
 test("createInvoiceData", (t) => {
-  const result = buyingGroup.createInvoiceData(orderDataPurchases, invoiceFooterData);
+  const result = buyingGroup.createInvoiceData(orderDataPurchases, invoiceFooterData, buyerData);
   t.deepEqual(result, invoiceData);
   t.end();
 });

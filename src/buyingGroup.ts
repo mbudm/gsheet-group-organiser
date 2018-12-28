@@ -77,7 +77,8 @@ export function createNewSheet(name, data, protections){
 function createInvoices_(){
     const orderFormData = getSheetData(ORDER_FORM_SHEET_NAME);
     const invoiceFooterData = getSheetData(INVOICE_FOOTER_SHEET_NAME);
-    const invoicesData = createInvoiceData(orderFormData, invoiceFooterData);
+    const buyerData = getSheetData(BUYERS_SHEET_NAME);
+    const invoicesData = createInvoiceData(orderFormData, invoiceFooterData, buyerData);
     const admins = getSheetData(ADMINS_SHEET_NAME);
     // write a new sheet for each invoice
     invoicesData.forEach((invoice) => createInvoiceSheet(invoice, admins));
@@ -152,13 +153,12 @@ export function getBuyerItems(orderFormData, buyerIdx){
     ]]);
 }
 
-export function createInvoiceData(orderFormData, invoiceFooterData){
-    const buyers = orderFormData[0].slice(orderSheetColumns.length);
-    const invoices = buyers.map((buyer, buyerIdx) => {
+export function createInvoiceData(orderFormData, invoiceFooterData, buyerData){
+    const invoices = buyerData.map((buyer, buyerIdx) => {
         const buyerOrderColIdx = orderSheetColumns.length + buyerIdx;
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
         return [
-            [buyer],
+            buyer.slice(1,3),
             [...invoiceColumns],
             ...buyerItems,
             ...invoiceFooterData
