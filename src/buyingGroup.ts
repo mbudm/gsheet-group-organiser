@@ -23,6 +23,11 @@ export const invoiceColumns = [
     'Totals'
 ]
 
+export const orderSheetColumns = [
+  ...itemsColumns,
+  'Shares remaining'
+];
+
 const ORDER_FORM_SHEET_NAME = 'Order Form';
 const ITEMS_SHEET_NAME = 'Items';
 const BUYERS_SHEET_NAME = 'Buyers';
@@ -92,7 +97,7 @@ function createOrderSheet_(){
 
 export function getOrderSheetProtections(admin, buyers, itemData){
     const buyersWithRange = buyers.map((buyer, buyerIdx) => {
-        const range = [1, itemsColumns.length + buyerIdx, itemData.length];
+        const range = [2, orderSheetColumns.length + buyerIdx + 1, itemData.length];
         return {
             email: buyer[1],
             range
@@ -106,7 +111,7 @@ export function getOrderSheetProtections(admin, buyers, itemData){
 
 export function createOrderFormData(itemData, buyerData){
   const buyerHeadings = buyerData.map(buyer => buyer[0]);
-  const headings = [...itemsColumns, ...buyerHeadings];
+  const headings = [...orderSheetColumns, ...buyerHeadings];
   return [
       headings,
       ...itemData
@@ -148,9 +153,9 @@ export function getBuyerItems(orderFormData, buyerIdx){
 }
 
 export function createInvoiceData(orderFormData, invoiceFooterData){
-    const buyers = orderFormData[0].slice(itemsColumns.length);
+    const buyers = orderFormData[0].slice(orderSheetColumns.length);
     const invoices = buyers.map((buyer, buyerIdx) => {
-        const buyerOrderColIdx = itemsColumns.length + buyerIdx;
+        const buyerOrderColIdx = orderSheetColumns.length + buyerIdx;
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
         return [
             [buyer],

@@ -22,14 +22,14 @@ const buyerData = [
 ]
 
 const orderDataEmpty = [
-  [...buyingGroup.itemsColumns, buyerData[0][0], buyerData[1][0]],
+  [...buyingGroup.orderSheetColumns, buyerData[0][0], buyerData[1][0]],
   ...itemData
 ]
 
 const orderDataPurchases = [
   [...orderDataEmpty[0]],
-  [...itemData[0], "3", "2"],
-  [...itemData[1], "8", "2"]
+  [...itemData[0], "5", "3", "2"],
+  [...itemData[1], "10", "8", "2"]
 ]
 
 const invoiceFooterData = [
@@ -63,9 +63,18 @@ test("createOrderFormData", (t) => {
   t.end();
 });
 
-test("getBuyerItems", (t) => {
-  const result = buyingGroup.getBuyerItems(orderDataPurchases, buyingGroup.itemsColumns.length);
+test("getBuyerItems - 1st buyer", (t) => {
+  const result = buyingGroup.getBuyerItems(orderDataPurchases, buyingGroup.orderSheetColumns.length);
   const expected = invoiceData[0].slice(2);
+  t.deepEqual(result[0], expected[0]);
+  t.deepEqual(result[1], expected[1]);
+  t.deepEqual(result[2], expected[2]);
+  t.end();
+});
+
+test("getBuyerItems - 2nd buyer", (t) => {
+  const result = buyingGroup.getBuyerItems(orderDataPurchases, buyingGroup.orderSheetColumns.length + 1);
+  const expected = invoiceData[1].slice(2);
   t.deepEqual(result[0], expected[0]);
   t.deepEqual(result[1], expected[1]);
   t.deepEqual(result[2], expected[2]);
