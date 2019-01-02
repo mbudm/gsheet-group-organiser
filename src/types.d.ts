@@ -3,7 +3,7 @@ export interface IProtection {
   rangeEditors: Array<IRangeEditors>;
 }
 export interface IRangeEditors {
-  range: Array<string | number>;
+  range: Array<number>;
   editors: Array<string>;
   name: string;
 }

@@ -91,7 +91,12 @@ export function createNewSheet(name, data, protections: IProtection){
 
   // add all range protection
   protections.rangeEditors.forEach((rangeEditors) =>{
-    const range: GoogleAppsScript.Spreadsheet.Range = newSheet.getRange.apply(null, rangeEditors.range);
+    let range: GoogleAppsScript.Spreadsheet.Range;
+    if(rangeEditors.range.length === 3){
+      range = newSheet.getRange(rangeEditors.range[0], rangeEditors.range[1], rangeEditors.range[2]);
+    }else{
+      range = newSheet.getRange(rangeEditors.range[0], rangeEditors.range[1], rangeEditors.range[2], rangeEditors.range[3]);
+    }
     const rangeProtection = range.protect().setDescription(rangeEditors.name);
 
     // associate with a name for easier debugging
@@ -158,12 +163,12 @@ export function getOrderSheetProtections(admin, buyers, itemData): IProtection {
   });
 
   const totalRow: IRangeEditors = {
-    range: [1, itemData.length + 2, orderSheetColumns.length + buyers.length],
+    range: [1, itemData.length + 2, 1, orderSheetColumns.length + buyers.length],
     editors: [...admin],
     name: 'totalRow'
   }
   const headingRow = {
-    range: [1, 1, orderSheetColumns.length + buyers.length],
+    range: [1, 1, 1, orderSheetColumns.length + buyers.length],
     editors: [...admin],
     name: "headingRow"
   }
