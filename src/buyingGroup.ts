@@ -1,3 +1,5 @@
+import { IProtection, IRangeEditors } from "./types";
+
 export const itemsColumns = [
     'Supplier Code',
     'Item',
@@ -62,7 +64,7 @@ export function padData(data){
   return data.map(row => row.length === maxWidth ? row : padRow(row, maxWidth));
 }
 
-export function createNewSheet(name, data, protections){
+export function createNewSheet(name, data, protections: IProtection){
   /*
   prompt to overwrite if sheet exists?
   */
@@ -75,39 +77,38 @@ export function createNewSheet(name, data, protections){
   const rangeForValues = newSheet.getRange(1, 1, paddedData.length, paddedData[0].length);
   rangeForValues.setValues(paddedData);
 
+
   // protect all sheets by default
   const sheetProtection = newSheet.protect().setDescription('Default generated sheet protection');
-  protections.forEach((user) => {
-    if(typeof user === 'string'){
-      sheetProtection.addEditor(user);
-    } else {
-      console.log('protecting a range for', user)
-      // protect a range
-      // user shape eg  { email: '', range: [2, 4, 4] },
-      const rangeForProtecting = newSheet.getRange(user.range[0], user.range[1], user.range[2]);
-      const rangeProtection = rangeForProtecting.protect().setDescription(`Range for user: ${user.email}`);
+  // remove all editors as they get added to new sheets by default
+  sheetProtection.removeEditors(sheetProtection.getEditors().map(user => user.getEmail()));
 
-      // associate with a name for easier debugging
-      const name = `range_${user.email}`.replace(/[^\w\s]|_/g, "")
-        .replace(/\s+/g, " ");
-      ss.setNamedRange(name, rangeForProtecting);
-      rangeProtection.setRangeName(name);
+  // add all sheet editors
+  protections.sheetEditors.forEach((editor) => {
+    ss.addEditors([editor]);
+    sheetProtection.addEditor(editor);
+  });
 
-      // From the docs (Protection.addEditor(user)):
-      // This method does not automatically give the user permission to edit the
-      // spreadsheet itself; to do that in addition, call Spreadsheet.addEditor(user).
-      ss.addEditors([user.email]);
-      // clear all editors, existing seem to get added by default
-      rangeProtection.removeEditors(rangeProtection.getEditors().map(user => user.getEmail()));
-      rangeProtection.addEditor(user.email);
+  // add all range protection
+  protections.rangeEditors.forEach((rangeEditors) =>{
+    const range: GoogleAppsScript.Spreadsheet.Range = newSheet.getRange.apply(null, rangeEditors.range);
+    const rangeProtection = range.protect().setDescription(rangeEditors.name);
 
-      // check it all worked
-      const rangeNotation = rangeForProtecting.getA1Notation();
-      const rangeDescription = rangeProtection.getDescription();
-      const rangeEditors = rangeProtection.getEditors();
-      const rangeProtectionType = rangeProtection.getProtectionType();
-      console.log('range pretection details', rangeNotation, rangeDescription, rangeEditors, rangeProtectionType);
-    }
+    // associate with a name for easier debugging
+    ss.setNamedRange(rangeEditors.name, range);
+    rangeProtection.setRangeName(rangeEditors.name);
+
+    // clear all editors, existing seem to get added by default
+    rangeProtection.removeEditors(rangeProtection.getEditors().map(user => user.getEmail()));
+    rangeProtection.addEditors(rangeEditors.editors);
+
+
+    // check it all worked
+    const rangeNotation = range.getA1Notation();
+    const rangeDescription = rangeProtection.getDescription();
+    const rangeEditorEmails = rangeProtection.getEditors();
+    const rangeProtectionType = rangeProtection.getProtectionType();
+    console.log('range protection details', rangeNotation, rangeDescription, rangeEditorEmails, rangeProtectionType);
   });
 }
 
@@ -141,18 +142,41 @@ function getAdminEmails(){
 
 // Order sheet
 
-export function getOrderSheetProtections(admin, buyers, itemData){
-    const buyersWithRange = buyers.map((buyer, buyerIdx) => {
-        const range = [2, orderSheetColumns.length + buyerIdx + 1, itemData.length];
-        return {
-            email: buyer[2],
-            range
-        }
-    });
-    return [
-        ...admin,
-        ...buyersWithRange
-    ];
+export function getRangeName(str): string{
+  return str.replace(/[^\w\s]|_/g, "")
+    .replace(/\s+/g, " ");
+}
+
+export function getOrderSheetProtections(admin, buyers, itemData): IProtection {
+  const rangeEditors: IRangeEditors[] = buyers.map((buyer, buyerIdx) => {
+    const range = [2, orderSheetColumns.length + buyerIdx + 1, itemData.length];
+    return {
+      range,
+      editors: [...admin, buyer[2]],
+      name: getRangeName(buyer[2])
+    }
+  });
+
+  const totalRow: IRangeEditors = {
+    range: [1, itemData.length + 2, orderSheetColumns.length + buyers.length],
+    editors: [...admin],
+    name: 'totalRow'
+  }
+  const headingRow = {
+    range: [1, 1, orderSheetColumns.length + buyers.length],
+    editors: [...admin],
+    name: "headingRow"
+  }
+  const itemsRange = {
+    range: [2, 1, itemData.length, orderSheetColumns.length],
+    editors: [...admin],
+    name: "itemsRange"
+  }
+
+  return {
+    sheetEditors: [...admin, ...buyers.map(b => b[2])],
+    rangeEditors: rangeEditors.concat([totalRow, headingRow, itemsRange]),
+  }
 }
 
 export function createOrderFormData(itemData, buyerData){
