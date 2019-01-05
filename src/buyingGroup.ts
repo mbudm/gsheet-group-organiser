@@ -101,12 +101,14 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   sheetProtection.removeEditors(sheetProtection.getEditors().map((user) => user.getEmail()));
 
   // add all sheet editors
+  console.log("adding sheetEditors:", protections.sheetEditors);
   protections.sheetEditors.forEach((editor) => {
     ss.addEditors([editor]);
     sheetProtection.addEditor(editor);
   });
 
   // add all range protection
+  console.log("adding range editors:", protections.rangeEditors);
   protections.rangeEditors.forEach((rangeEditors) => {
     let range: GoogleAppsScript.Spreadsheet.Range;
     if (rangeEditors.range.length === 3) {
