@@ -7,3 +7,12 @@ export interface IRangeEditors {
   editors: Array<string>;
   name: string;
 }
+export interface ISheetData {
+  values: Array<Array<number | string>>;
+  formulas: Array<IFormulas>;
+}
+
+export interface IFormulas {
+  range: Array<number>;
+  formulaValues: Array<string>;
+}
