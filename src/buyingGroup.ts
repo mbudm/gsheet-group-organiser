@@ -85,7 +85,9 @@ export function createNewSheet(name, data: ISheetData, protections: IProtection)
     }else{
       formulaRange = newSheet.getRange(formulaData.range[0], formulaData.range[1], formulaData.range[2], formulaData.range[3]);
     }
-    formulaRange.setFormulasR1C1([formulaData.formulaValues]);
+    console.log('adding formulas to range:', formulaData.range);
+    console.log(formulaData.formulaValues);
+    formulaRange.setFormulasR1C1(formulaData.formulaValues);
   });
 
   // protect all sheets by default
@@ -197,14 +199,15 @@ export function getOrderSheetProtections(admin, buyers, itemData): IProtection {
 export function createOrderFormData(itemData, buyerData): ISheetData{
   const buyerHeadings = buyerData.map(buyer => buyer[0]);
   const headings = [...orderSheetColumns, ...buyerHeadings];
-  const totals = Array(orderSheetColumns.length);
-  buyerData.forEach(() => {
-    totals.push(`=SUM(R[-${itemData.length}]C[0]:R[-1]C[0])`);
+  const totals = [];
+  buyerData.forEach((b, idx) => {
+    const col = idx + 3; // relative to share cost
+    totals.push(`=SUMPRODUCT(R[-${itemData.length}]C[-${col}]:R[-1]C[-${col}], R[-${itemData.length}]C[0]:R[-1]C[0])`);
   });
 
   const sharesRemaining = [];
   itemData.forEach(() => {
-    sharesRemaining.push(`=R[0]C[-1] - SUM(R[0]C[1]:R[0]C[${buyerData.length}])`);
+    sharesRemaining.push([`=IF(ISNUMBER(R[0]C[-1]),R[0]C[-1] - SUM(R[0]C[1]:R[0]C[${buyerData.length}]), "n/a")`]);
   })
   return {
     values: [
@@ -214,7 +217,7 @@ export function createOrderFormData(itemData, buyerData): ISheetData{
     formulas: [
       {
         range: [itemData.length + 2, orderSheetColumns.length + 1, 1, buyerData.length],
-        formulaValues: [...totals]
+        formulaValues: [[...totals]]
       },
       {
         range: [2, orderSheetColumns.length, itemData.length],

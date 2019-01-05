@@ -20,23 +20,17 @@ const orderDataEmpty = {
     {
       range: [4, 9, 1, 2],
       formulaValues: [
-        ,
-        ,
-        ,
-        ,
-        ,
-        ,
-        ,
-        ,
-        "=SUM(R[-2]C[0]:R[-1]C[0])",
-        "=SUM(R[-2]C[0]:R[-1]C[0])"
+        [
+          "=SUMPRODUCT(R[-2]C[-3]:R[-1]C[-3], R[-2]C[0]:R[-1]C[0])",
+          "=SUMPRODUCT(R[-2]C[-4]:R[-1]C[-4], R[-2]C[0]:R[-1]C[0])"
+        ]
       ]
     },
     {
       range: [2, 8, 2],
       formulaValues: [
-        "=R[0]C[-1] - SUM(R[0]C[1]:R[0]C[2])",
-        "=R[0]C[-1] - SUM(R[0]C[1]:R[0]C[2])"
+        ['=IF(ISNUMBER(R[0]C[-1]),R[0]C[-1] - SUM(R[0]C[1]:R[0]C[2]), "n/a")'],
+        ['=IF(ISNUMBER(R[0]C[-1]),R[0]C[-1] - SUM(R[0]C[1]:R[0]C[2]), "n/a")']
       ]
     }
   ]

@@ -14,5 +14,5 @@ export interface ISheetData {
 
 export interface IFormulas {
   range: Array<number>;
-  formulaValues: Array<string>;
+  formulaValues: string[][];
 }
