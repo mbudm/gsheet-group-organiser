@@ -51,22 +51,28 @@ const invoiceFooterData = [
 ];
 
 const invoiceData = [
-  [
-    [buyerData[0][1], buyerData[0][2]],
-    [...buyingGroup.invoiceColumns],
-    ["Apricots", "1kg", "14.95", "3", 44.85],
-    ["Cherries", "500gm", "11.25", "8", 90],
-    ["", "", "", "Total Due", 134.85],
-    ...invoiceFooterData
-  ],
-  [
-    [buyerData[1][1], buyerData[1][2]],
-    [...buyingGroup.invoiceColumns],
-    ["Apricots", "1kg", "14.95", "2", 29.9],
-    ["Cherries", "500gm", "11.25", "2", 22.5],
-    ["", "", "", "Total Due", 52.4],
-    ...invoiceFooterData
-  ]
+  {
+    values: [
+      [buyerData[0][1], buyerData[0][2]],
+      [...buyingGroup.invoiceColumns],
+      ["Apricots", "1kg", "14.95", "3", 44.85],
+      ["Cherries", "500gm", "11.25", "8", 90],
+      ["", "", "", "Total Due", 134.85],
+      ...invoiceFooterData
+    ],
+    formulas: []
+  },
+  {
+    values: [
+      [buyerData[1][1], buyerData[1][2]],
+      [...buyingGroup.invoiceColumns],
+      ["Apricots", "1kg", "14.95", "2", 29.9],
+      ["Cherries", "500gm", "11.25", "2", 22.5],
+      ["", "", "", "Total Due", 52.4],
+      ...invoiceFooterData
+    ],
+    formulas: []
+  }
 ];
 
 test("createOrderFormData", t => {
@@ -81,7 +87,7 @@ test("getBuyerItems - 1st buyer", t => {
     orderDataPurchases,
     buyingGroup.orderSheetColumns.length
   );
-  const expected = invoiceData[0].slice(2);
+  const expected = invoiceData[0].values.slice(2);
   t.equal(result.length, 2);
   t.deepEqual(result[0], expected[0]);
   t.deepEqual(result[1], expected[1]);
@@ -93,7 +99,7 @@ test("getBuyerItems - 2nd buyer", t => {
     orderDataPurchases,
     buyingGroup.orderSheetColumns.length + 1
   );
-  const expected = invoiceData[1].slice(2);
+  const expected = invoiceData[1].values.slice(2);
   t.equal(result.length, 2);
   t.deepEqual(result[0], expected[0]);
   t.deepEqual(result[1], expected[1]);
@@ -106,7 +112,7 @@ test("createInvoiceData", t => {
     invoiceFooterData,
     buyerData
   );
-  t.deepEqual(result.values, invoiceData);
+  t.deepEqual(result, invoiceData);
   t.end();
 });
 

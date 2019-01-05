@@ -6,8 +6,12 @@
   "scripts": {
     "test": "tape -r ts-node/register -r babel-register './test/**/*.ts' | tap-spec",
     "test-watch": "tape-watch  -r ts-node/register -r babel-register './test/**/*.ts'  | tap-spec",
-    "push": "cd ./src && clasp push"
+    "push": "cd ./src && clasp push",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'"
   },
+  "pre-commit": [
+    "test"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mbudm/gsheet-group-organiser.git"

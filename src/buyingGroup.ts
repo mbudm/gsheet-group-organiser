@@ -59,19 +59,20 @@ export function padRow(arr, len){
   }
   return arr;
 }
-export function padData(data){
+export function padData(data: Array<Array<string | number>>){
   const maxWidth = data.reduce((acc, row) => Math.max(acc, row.length), 0);
   return data.map(row => row.length === maxWidth ? row : padRow(row, maxWidth));
 }
 
-export function createNewSheet(name, data: ISheetData, protections: IProtection){
+export function createNewSheet(name: string, data: ISheetData, protections: IProtection){
   // create sheet
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const newSheet = ss.insertSheet(name);
 
   // add values
+  console.log(`creating sheet: ${name} raw values:`, data.values);
   const paddedValues = padData(data.values);
-  console.log('creating a sheet with values:', paddedValues.length, paddedValues[0].length);
+  console.log('- padded values:', paddedValues.length, paddedValues[0].length);
   console.log(paddedValues);
 
   const rangeForValues = newSheet.getRange(1, 1, paddedValues.length, paddedValues[0].length);
@@ -139,7 +140,7 @@ function createInvoices_(){
     const invoicesData = createInvoiceData(orderFormData, invoiceFooterData, buyerData);
     const admins = getAdminEmails();
     // write a new sheet for each invoice
-    invoicesData.values.forEach((invoice) => createInvoiceSheet(invoice, admins));
+    invoicesData.forEach((invoice) => createInvoiceSheet(invoice, admins));
 }
 
 function createOrderSheet_(){
@@ -231,10 +232,13 @@ export function createOrderFormData(itemData, buyerData): ISheetData{
 
 // invoice sheet
 
-function createInvoiceSheet(invoice, admins){
-    const users = admins.concat(invoice[0][1]);
-    const name = `Invoice' ${invoice[0][0]}`;
-    createNewSheet(name, invoice, users);
+function createInvoiceSheet(invoice: ISheetData, admins){
+    const protections: IProtection = {
+      sheetEditors: admins.concat(invoice.values[0][1]),
+      rangeEditors: []
+    }
+    const name = `Invoice' ${invoice.values[0][0]}`;
+    createNewSheet(name, invoice, protections);
 }
 
 function getItemTotal(purchased, shareCost){
@@ -269,7 +273,7 @@ function getTotalRow(buyerItems){
   ];
 }
 
-export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): ISheetData{
+export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): ISheetData[]{
     const invoices = buyerData.filter((b, bIdx) => {
         const bOrderColIdx = orderSheetColumns.length + bIdx;
         const bItems = getBuyerItems(orderFormData, bOrderColIdx);
@@ -281,16 +285,16 @@ export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): 
         const buyerOrderColIdx = orderSheetColumns.length + buyerIdx;
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
         const totalRow = getTotalRow(buyerItems);
-        return [
+        return {
+          values: [
             buyer.slice(1,3),
             [...invoiceColumns],
             ...buyerItems,
             totalRow,
             ...invoiceFooterData
-        ];
+          ],
+          formulas: []
+        };
     })
-    return {
-      values: invoices,
-      formulas: []
-    }
+    return invoices
 }
