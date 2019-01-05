@@ -10,6 +10,7 @@
     "lint": "tslint -c tslint.json 'src/**/*.ts'"
   },
   "pre-commit": [
+    "lint",
     "test"
   ],
   "repository": {

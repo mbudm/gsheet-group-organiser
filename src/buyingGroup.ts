@@ -1,70 +1,70 @@
 import { IProtection, IRangeEditors, ISheetData } from "./types";
 
 export const itemsColumns = [
-    'Supplier Code',
-    'Item',
-    'Qty it comes in',
-    'Bulk retail cost',
-    'Share size',
-    'Share cost',
-    'Shares offered'
+    "Supplier Code",
+    "Item",
+    "Qty it comes in",
+    "Bulk retail cost",
+    "Share size",
+    "Share cost",
+    "Shares offered",
 ];
 
 export const buyersColumns = [
-    'Friendly Name',
-    'Full name',
-    'Email',
-    'Mobile'
+    "Friendly Name",
+    "Full name",
+    "Email",
+    "Mobile",
 ];
 
 export const invoiceColumns = [
-    'Item',
-    'Share size',
-    'Share cost',
-    'Purchased',
-    'Totals'
-]
+    "Item",
+    "Share size",
+    "Share cost",
+    "Purchased",
+    "Totals",
+];
 
 export const orderSheetColumns = [
   ...itemsColumns,
-  'Shares remaining'
+  "Shares remaining",
 ];
 
-const ORDER_FORM_SHEET_NAME = 'Order Form';
-const ITEMS_SHEET_NAME = 'Items';
-const BUYERS_SHEET_NAME = 'Buyers';
-const ADMINS_SHEET_NAME = 'Admin users';
-const INVOICE_FOOTER_SHEET_NAME = 'Invoice footer';
+const ORDER_FORM_SHEET_NAME = "Order Form";
+const ITEMS_SHEET_NAME = "Items";
+const BUYERS_SHEET_NAME = "Buyers";
+const ADMINS_SHEET_NAME = "Admin users";
+const INVOICE_FOOTER_SHEET_NAME = "Invoice footer";
 
 // sheet helpers
 
-
-export function getSheetData(sheetName){
+export function getSheetData(sheetName) {
   try {
-    console.log('getSheetData', sheetName);
-    const spreadsheet = SpreadsheetApp.getActive()
+    console.log("getSheetData", sheetName);
+    const spreadsheet = SpreadsheetApp.getActive();
     const namedSheet = spreadsheet.getSheetByName(sheetName);
     namedSheet.activate();
     const values = namedSheet.getDataRange().getValues();
     return values.slice(1); // remove header row
-  } catch(e) {
+  } catch (e) {
     console.error(e, sheetName);
   }
 }
 
-export function padRow(arr, len){
-  while(true){
-      if(arr.push('') >= len)
+export function padRow(arr, len) {
+  while (true) {
+      if (arr.push("") >= len) {
       break;
+      }
   }
   return arr;
 }
-export function padData(data: Array<Array<string | number>>){
+export function padData(data: Array<Array<string | number>>) {
   const maxWidth = data.reduce((acc, row) => Math.max(acc, row.length), 0);
-  return data.map(row => row.length === maxWidth ? row : padRow(row, maxWidth));
+  return data.map((row) => row.length === maxWidth ? row : padRow(row, maxWidth));
 }
 
-export function createNewSheet(name: string, data: ISheetData, protections: IProtection){
+export function createNewSheet(name: string, data: ISheetData, protections: IProtection) {
   // create sheet
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const newSheet = ss.insertSheet(name);
@@ -72,29 +72,33 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   // add values
   console.log(`creating sheet: ${name} raw values:`, data.values);
   const paddedValues = padData(data.values);
-  console.log('- padded values:', paddedValues.length, paddedValues[0].length);
+  console.log("- padded values:", paddedValues.length, paddedValues[0].length);
   console.log(paddedValues);
 
   const rangeForValues = newSheet.getRange(1, 1, paddedValues.length, paddedValues[0].length);
   rangeForValues.setValues(paddedValues);
 
   // add formulas
-  data.formulas.forEach(formulaData => {
+  data.formulas.forEach((formulaData) => {
     let formulaRange;
-    if(formulaData.range.length === 3){
+    if (formulaData.range.length === 3) {
       formulaRange = newSheet.getRange(formulaData.range[0], formulaData.range[1], formulaData.range[2]);
-    }else{
-      formulaRange = newSheet.getRange(formulaData.range[0], formulaData.range[1], formulaData.range[2], formulaData.range[3]);
+    } else {
+      formulaRange = newSheet.getRange(
+        formulaData.range[0],
+        formulaData.range[1],
+        formulaData.range[2],
+        formulaData.range[3]);
     }
-    console.log('adding formulas to range:', formulaData.range);
+    console.log("adding formulas to range:", formulaData.range);
     console.log(formulaData.formulaValues);
     formulaRange.setFormulasR1C1(formulaData.formulaValues);
   });
 
   // protect all sheets by default
-  const sheetProtection = newSheet.protect().setDescription('Default generated sheet protection');
+  const sheetProtection = newSheet.protect().setDescription("Default generated sheet protection");
   // remove all editors as they get added to new sheets by default
-  sheetProtection.removeEditors(sheetProtection.getEditors().map(user => user.getEmail()));
+  sheetProtection.removeEditors(sheetProtection.getEditors().map((user) => user.getEmail()));
 
   // add all sheet editors
   protections.sheetEditors.forEach((editor) => {
@@ -103,12 +107,16 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   });
 
   // add all range protection
-  protections.rangeEditors.forEach((rangeEditors) =>{
+  protections.rangeEditors.forEach((rangeEditors) => {
     let range: GoogleAppsScript.Spreadsheet.Range;
-    if(rangeEditors.range.length === 3){
+    if (rangeEditors.range.length === 3) {
       range = newSheet.getRange(rangeEditors.range[0], rangeEditors.range[1], rangeEditors.range[2]);
-    }else{
-      range = newSheet.getRange(rangeEditors.range[0], rangeEditors.range[1], rangeEditors.range[2], rangeEditors.range[3]);
+    } else {
+      range = newSheet.getRange(
+        rangeEditors.range[0],
+        rangeEditors.range[1],
+        rangeEditors.range[2],
+        rangeEditors.range[3]);
     }
     const rangeProtection = range.protect().setDescription(rangeEditors.name);
 
@@ -117,23 +125,21 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
     rangeProtection.setRangeName(rangeEditors.name);
 
     // clear all editors, existing seem to get added by default
-    rangeProtection.removeEditors(rangeProtection.getEditors().map(user => user.getEmail()));
+    rangeProtection.removeEditors(rangeProtection.getEditors().map((user) => user.getEmail()));
     rangeProtection.addEditors(rangeEditors.editors);
-
 
     // check it all worked
     const rangeNotation = range.getA1Notation();
     const rangeDescription = rangeProtection.getDescription();
     const rangeEditorEmails = rangeProtection.getEditors();
     const rangeProtectionType = rangeProtection.getProtectionType();
-    console.log('range protection details', rangeNotation, rangeDescription, rangeEditorEmails, rangeProtectionType);
+    console.log("range protection details", rangeNotation, rangeDescription, rangeEditorEmails, rangeProtectionType);
   });
 }
 
-
 // menu event handlers
 
-function createInvoices_(){
+function createInvoices_() {
     const orderFormData = getSheetData(ORDER_FORM_SHEET_NAME);
     const invoiceFooterData = getSheetData(INVOICE_FOOTER_SHEET_NAME);
     const buyerData = getSheetData(BUYERS_SHEET_NAME);
@@ -143,7 +149,7 @@ function createInvoices_(){
     invoicesData.forEach((invoice) => createInvoiceSheet(invoice, admins));
 }
 
-function createOrderSheet_(){
+function createOrderSheet_() {
     const itemData = getSheetData(ITEMS_SHEET_NAME);
     const buyerData = getSheetData(BUYERS_SHEET_NAME);
     const orderFormData = createOrderFormData(itemData, buyerData);
@@ -153,14 +159,14 @@ function createOrderSheet_(){
 }
 
 // admins
-function getAdminEmails(){
+function getAdminEmails() {
   const adminData = getSheetData(ADMINS_SHEET_NAME);
   return adminData.reduce((acc, val) => acc.concat(val), []);
 }
 
 // Order sheet
 
-export function getRangeName(str): string{
+export function getRangeName(str): string {
   return str.replace(/[^\w\s]|_/g, "")
     .replace(/\s+/g, " ");
 }
@@ -169,36 +175,36 @@ export function getOrderSheetProtections(admin, buyers, itemData): IProtection {
   const rangeEditors: IRangeEditors[] = buyers.map((buyer, buyerIdx) => {
     const range = [2, orderSheetColumns.length + buyerIdx + 1, itemData.length];
     return {
-      range,
       editors: [...admin, buyer[2]],
-      name: getRangeName(buyer[2])
-    }
+      name: getRangeName(buyer[2]),
+      range,
+    };
   });
 
   const totalRow: IRangeEditors = {
+    editors: [...admin],
+    name: "totalRow",
     range: [1, itemData.length + 2, 1, orderSheetColumns.length + buyers.length],
-    editors: [...admin],
-    name: 'totalRow'
-  }
+  };
   const headingRow = {
+    editors: [...admin],
+    name: "headingRow",
     range: [1, 1, 1, orderSheetColumns.length + buyers.length],
-    editors: [...admin],
-    name: "headingRow"
-  }
+  };
   const itemsRange = {
-    range: [2, 1, itemData.length, orderSheetColumns.length],
     editors: [...admin],
-    name: "itemsRange"
-  }
+    name: "itemsRange",
+    range: [2, 1, itemData.length, orderSheetColumns.length],
+  };
 
   return {
-    sheetEditors: [...admin, ...buyers.map(b => b[2])],
     rangeEditors: rangeEditors.concat([totalRow, headingRow, itemsRange]),
-  }
+    sheetEditors: [...admin, ...buyers.map((b) => b[2])],
+  };
 }
 
-export function createOrderFormData(itemData, buyerData): ISheetData{
-  const buyerHeadings = buyerData.map(buyer => buyer[0]);
+export function createOrderFormData(itemData, buyerData): ISheetData {
+  const buyerHeadings = buyerData.map((buyer) => buyer[0]);
   const headings = [...orderSheetColumns, ...buyerHeadings];
   const totals = [];
   buyerData.forEach((b, idx) => {
@@ -209,47 +215,45 @@ export function createOrderFormData(itemData, buyerData): ISheetData{
   const sharesRemaining = [];
   itemData.forEach(() => {
     sharesRemaining.push([`=IF(ISNUMBER(R[0]C[-1]),R[0]C[-1] - SUM(R[0]C[1]:R[0]C[${buyerData.length}]), "n/a")`]);
-  })
+  });
   return {
+    formulas: [
+      {
+        formulaValues: [[...totals]],
+        range: [itemData.length + 2, orderSheetColumns.length + 1, 1, buyerData.length],
+      },
+      {
+        formulaValues: [...sharesRemaining],
+        range: [2, orderSheetColumns.length, itemData.length],
+      },
+    ],
     values: [
       headings,
       ...itemData,
     ],
-    formulas: [
-      {
-        range: [itemData.length + 2, orderSheetColumns.length + 1, 1, buyerData.length],
-        formulaValues: [[...totals]]
-      },
-      {
-        range: [2, orderSheetColumns.length, itemData.length],
-        formulaValues: [...sharesRemaining]
-      }
-    ]
   };
 }
 
-
-
 // invoice sheet
 
-function createInvoiceSheet(invoice: ISheetData, admins){
+function createInvoiceSheet(invoice: ISheetData, admins) {
     const protections: IProtection = {
+      rangeEditors: [],
       sheetEditors: admins.concat(invoice.values[0][1]),
-      rangeEditors: []
-    }
+    };
     const name = `Invoice' ${invoice.values[0][0]}`;
     createNewSheet(name, invoice, protections);
 }
 
-function getItemTotal(purchased, shareCost){
-  const result = Math.round( (purchased * shareCost) * 100 )/ 100;
-  console.log('getItemTotal', purchased, shareCost, result);
+function getItemTotal(purchased, shareCost) {
+  const result = Math.round( (purchased * shareCost) * 100 ) / 100;
+  console.log("getItemTotal", purchased, shareCost, result);
   return result;
 }
 
-export function getBuyerItems(orderFormData, buyerIdx){
+export function getBuyerItems(orderFormData, buyerIdx) {
     return orderFormData.filter((row, idx) => {
-        return idx > 0 && parseInt(row[buyerIdx]) > 0;
+        return idx > 0 && parseInt(row[buyerIdx], 10) > 0;
     }).map((r) => {
         const itemTotal = getItemTotal(r[buyerIdx], r[5]);
         return [
@@ -257,28 +261,28 @@ export function getBuyerItems(orderFormData, buyerIdx){
             r[4], // 'Share size',
             r[5], // 'Share cost'
             r[buyerIdx], // 'Purchased',
-            itemTotal // 'Totals'
+            itemTotal, // 'Totals'
         ];
     });
 }
 
-function getTotalRow(buyerItems){
-  const total = buyerItems.reduce((total, item) => total + item[4], 0)
+function getTotalRow(buyerItems) {
+  const total = buyerItems.reduce((t: number, item) => t + item[4], 0);
   return [
     "",
     "",
     "",
     "Total Due",
-    total
+    total,
   ];
 }
 
-export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): ISheetData[]{
+export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): ISheetData[] {
     const invoices = buyerData.filter((b, bIdx) => {
         const bOrderColIdx = orderSheetColumns.length + bIdx;
         const bItems = getBuyerItems(orderFormData, bOrderColIdx);
 
-        console.log('buyer filter:', bIdx, bItems.length, b[0]);
+        console.log("buyer filter:", bIdx, bItems.length, b[0]);
         return bItems.length > 0;
       })
       .map((buyer, buyerIdx) => {
@@ -286,15 +290,15 @@ export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): 
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
         const totalRow = getTotalRow(buyerItems);
         return {
+          formulas: [],
           values: [
-            buyer.slice(1,3),
+            buyer.slice(1, 3),
             [...invoiceColumns],
             ...buyerItems,
             totalRow,
-            ...invoiceFooterData
+            ...invoiceFooterData,
           ],
-          formulas: []
         };
-    })
-    return invoices
+    });
+    return invoices;
 }

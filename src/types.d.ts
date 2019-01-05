@@ -1,18 +1,18 @@
 export interface IProtection {
-  sheetEditors: Array<string>;
-  rangeEditors: Array<IRangeEditors>;
+  sheetEditors: string[];
+  rangeEditors: IRangeEditors[];
 }
 export interface IRangeEditors {
-  range: Array<number>;
-  editors: Array<string>;
+  range: number[];
+  editors: string[];
   name: string;
 }
 export interface ISheetData {
   values: Array<Array<number | string>>;
-  formulas: Array<IFormulas>;
+  formulas: IFormulas[];
 }
 
 export interface IFormulas {
-  range: Array<number>;
+  range: number[];
   formulaValues: string[][];
 }
