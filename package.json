@@ -7,6 +7,7 @@
     "test": "tape -r ts-node/register -r babel-register './test/**/*.ts' | tap-spec",
     "test-watch": "tape-watch  -r ts-node/register -r babel-register './test/**/*.ts'  | tap-spec",
     "push": "cd ./src && clasp push",
+    "version": "cd ./src && clasp version",
     "lint": "tslint -c tslint.json 'src/**/*.ts'"
   },
   "pre-commit": [

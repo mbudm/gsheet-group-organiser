@@ -114,7 +114,7 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
     const validationRange = getRangeFromArray(newSheet, validationData.range);
     const rule = SpreadsheetApp.newDataValidation()
       .requireFormulaSatisfied(validationData.formula)
-      .setAllowInvalid(false)
+      .setAllowInvalid(true) // false prevents edit after the rule has been broken so buyer cant fix it...
       .setHelpText(validationData.helpText)
       .build();
     validationRange.setDataValidation(rule);
@@ -222,11 +222,10 @@ export function getOrderSheetProtections(admin, buyers, itemData): IProtection {
 }
 
 export function getOrderSheetValidations(itemData, buyerData): IValidation[] {
-  const sharesAvailCol = arrayIndexToLetter(orderSheetColumns.length - 2);
   const sharesRemainCol = arrayIndexToLetter(orderSheetColumns.length - 1);
   return itemData.map((item, idx) => {
     const row = idx + 2;
-    const formula = `=GTE(${sharesAvailCol}${row},${sharesRemainCol}${row})`;
+    const formula = `=GTE($${sharesRemainCol}${row},0)`;
     return {
       formula,
       helpText: `${item[1]} has a max of ${item[orderSheetColumns.length - 2]} shares`,

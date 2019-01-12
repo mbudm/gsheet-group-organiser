@@ -17,11 +17,11 @@ test("getOrderSheetValidations", (t) => {
   const result = getOrderSheetValidations(itemData, buyers);
 
   const expected: IValidation[] = [{
-    formula: "=GTE(G2,H2)",
+    formula: "=GTE($H2,0)",
     helpText: "Apricots has a max of 5 shares",
     range: [2, 9, 1, 2],
   }, {
-    formula: "=GTE(G3,H3)",
+    formula: "=GTE($H3,0)",
     helpText: "Cherries has a max of 10 shares",
     range: [3, 9, 1, 2],
   }];
