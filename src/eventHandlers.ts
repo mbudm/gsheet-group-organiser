@@ -6,3 +6,7 @@ function onOpen() {
     ];
     spreadsheet.addMenu("Buying Group", menuItems);
 }
+
+function onInstall(e) {
+  onOpen();
+}
