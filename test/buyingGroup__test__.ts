@@ -53,6 +53,7 @@ const invoiceFooterData = [
 const invoiceData = [
   {
     formulas: [],
+    validation: [],
     values: [
       [buyerData[0][1], buyerData[0][2]],
       [...buyingGroup.invoiceColumns],
@@ -64,6 +65,7 @@ const invoiceData = [
   },
   {
     formulas: [],
+    validation: [],
     values: [
       [buyerData[1][1], buyerData[1][2]],
       [...buyingGroup.invoiceColumns],
@@ -113,24 +115,5 @@ test("createInvoiceData", (t) => {
     buyerData,
   );
   t.deepEqual(result, invoiceData);
-  t.end();
-});
-
-test("padRow", (t) => {
-  const arr = ["some", "vals", "short"];
-  const result = buyingGroup.padRow(arr, 5);
-  t.deepEqual(arr.length, 5);
-  t.end();
-});
-
-test("padData", (t) => {
-  const arr = [
-    ["hai", "kus", "are", "eas", "y"],
-    ["but", "some", "times", "they", "don't", "make", "sense"],
-    ["re", "frig", "er", "a", "tor"],
-  ];
-  const result = buyingGroup.padData(arr);
-  t.deepEqual(result[0].length, result[1].length);
-  t.deepEqual(result[2].length, result[1].length);
   t.end();
 });

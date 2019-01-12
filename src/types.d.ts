@@ -10,9 +10,15 @@ export interface IRangeEditors {
 export interface ISheetData {
   values: Array<Array<number | string>>;
   formulas: IFormulas[];
+  validation: IValidation[];
 }
 
 export interface IFormulas {
   range: number[];
   formulaValues: string[][];
+}
+export interface IValidation {
+  range: number[];
+  formula: string;
+  helpText: string;
 }

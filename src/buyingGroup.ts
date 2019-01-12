@@ -1,4 +1,4 @@
-import { IProtection, IRangeEditors, ISheetData } from "./types";
+import { IProtection, IRangeEditors, ISheetData, IValidation } from "./types";
 
 export const itemsColumns = [
     "Supplier Code",
@@ -38,7 +38,7 @@ const INVOICE_FOOTER_SHEET_NAME = "Invoice footer";
 
 // sheet helpers
 
-export function getSheetData(sheetName) {
+export function getSheetData(sheetName: string): object[][] {
   try {
     console.log("getSheetData", sheetName);
     const spreadsheet = SpreadsheetApp.getActive();
@@ -64,6 +64,26 @@ export function padData(data: Array<Array<string | number>>) {
   return data.map((row) => row.length === maxWidth ? row : padRow(row, maxWidth));
 }
 
+// surely a way to ...spread this in typescript but havent figured it out yet
+export function getRangeFromArray(
+  sheet: GoogleAppsScript.Spreadsheet.Sheet,
+  arr: number[]): GoogleAppsScript.Spreadsheet.Range {
+  return arr.length === 3 ?
+    sheet.getRange(arr[0], arr[1], arr[2]) :
+    sheet.getRange(
+      arr[0],
+      arr[1],
+      arr[2],
+      arr[3]);
+}
+
+export function arrayIndexToLetter(idx) {
+  const remainder = (idx) % 26;
+  return idx < 26 ?
+    String.fromCharCode(idx + 65) :
+    `${String.fromCharCode(((idx - remainder - 1) / 26) + 65)}${String.fromCharCode(((idx) % 26) + 65)}`;
+}
+
 export function createNewSheet(name: string, data: ISheetData, protections: IProtection) {
   // create sheet
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -82,19 +102,22 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
 
   // add formulas
   data.formulas.forEach((formulaData) => {
-    let formulaRange;
-    if (formulaData.range.length === 3) {
-      formulaRange = newSheet.getRange(formulaData.range[0], formulaData.range[1], formulaData.range[2]);
-    } else {
-      formulaRange = newSheet.getRange(
-        formulaData.range[0],
-        formulaData.range[1],
-        formulaData.range[2],
-        formulaData.range[3]);
-    }
+    const formulaRange = getRangeFromArray(newSheet, formulaData.range);
+
     console.log("adding formulas to range:", formulaData.range);
     console.log(formulaData.formulaValues);
     formulaRange.setFormulasR1C1(formulaData.formulaValues);
+  });
+
+  // validation rules
+  data.validation.forEach((validationData) => {
+    const validationRange = getRangeFromArray(newSheet, validationData.range);
+    const rule = SpreadsheetApp.newDataValidation()
+      .requireFormulaSatisfied(validationData.formula)
+      .setAllowInvalid(false)
+      .setHelpText(validationData.helpText)
+      .build();
+    validationRange.setDataValidation(rule);
   });
 
   // protect all sheets by default
@@ -112,16 +135,7 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   // add all range protection
   console.log("adding range editors:", protections.rangeEditors);
   protections.rangeEditors.forEach((rangeEditors) => {
-    let range: GoogleAppsScript.Spreadsheet.Range;
-    if (rangeEditors.range.length === 3) {
-      range = newSheet.getRange(rangeEditors.range[0], rangeEditors.range[1], rangeEditors.range[2]);
-    } else {
-      range = newSheet.getRange(
-        rangeEditors.range[0],
-        rangeEditors.range[1],
-        rangeEditors.range[2],
-        rangeEditors.range[3]);
-    }
+    const range = getRangeFromArray(newSheet, rangeEditors.range);
     const rangeProtection = range.protect().setDescription(rangeEditors.name);
 
     // associate with a name for easier debugging
@@ -207,9 +221,24 @@ export function getOrderSheetProtections(admin, buyers, itemData): IProtection {
   };
 }
 
+export function getOrderSheetValidations(itemData, buyerData): IValidation[] {
+  const sharesAvailCol = arrayIndexToLetter(orderSheetColumns.length - 2);
+  const sharesRemainCol = arrayIndexToLetter(orderSheetColumns.length - 1);
+  return itemData.map((item, idx) => {
+    const row = idx + 2;
+    const formula = `=GTE(${sharesAvailCol}${row},${sharesRemainCol}${row})`;
+    return {
+      formula,
+      helpText: `${item[1]} has a max of ${item[orderSheetColumns.length - 2]} shares`,
+      range: [row, orderSheetColumns.length + 1, 1, buyerData.length],
+    };
+  });
+}
+
 export function createOrderFormData(itemData, buyerData): ISheetData {
   const buyerHeadings = buyerData.map((buyer) => buyer[0]);
   const headings = [...orderSheetColumns, ...buyerHeadings];
+  const validation = getOrderSheetValidations(itemData, buyerData);
   const totals = [];
   buyerData.forEach((b, idx) => {
     const col = idx + 3; // relative to share cost
@@ -231,6 +260,7 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
         range: [2, orderSheetColumns.length, itemData.length],
       },
     ],
+    validation,
     values: [
       headings,
       ...itemData,
@@ -243,7 +273,7 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
 function createInvoiceSheet(invoice: ISheetData, admins) {
     const protections: IProtection = {
       rangeEditors: [],
-      sheetEditors: admins.concat(invoice.values[0][1]),
+      sheetEditors: [...admins],
     };
     const name = `Invoice' ${invoice.values[0][0]}`;
     createNewSheet(name, invoice, protections);
@@ -282,19 +312,20 @@ function getTotalRow(buyerItems) {
 }
 
 export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): ISheetData[] {
-    const invoices = buyerData.filter((b, bIdx) => {
+    const invoices: ISheetData[] = buyerData.filter((b, bIdx) => {
         const bOrderColIdx = orderSheetColumns.length + bIdx;
         const bItems = getBuyerItems(orderFormData, bOrderColIdx);
 
         console.log("buyer filter:", bIdx, bItems.length, b[0]);
         return bItems.length > 0;
       })
-      .map((buyer, buyerIdx) => {
+      .map((buyer, buyerIdx): ISheetData  => {
         const buyerOrderColIdx = orderSheetColumns.length + buyerIdx;
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
         const totalRow = getTotalRow(buyerItems);
         return {
           formulas: [],
+          validation: [],
           values: [
             buyer.slice(1, 3),
             [...invoiceColumns],
