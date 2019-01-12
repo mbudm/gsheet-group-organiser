@@ -78,6 +78,8 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   const rangeForValues = newSheet.getRange(1, 1, paddedValues.length, paddedValues[0].length);
   rangeForValues.setValues(paddedValues);
 
+  newSheet.autoResizeColumns(1, paddedValues[0].length);
+
   // add formulas
   data.formulas.forEach((formulaData) => {
     let formulaRange;
