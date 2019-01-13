@@ -38,13 +38,13 @@ const INVOICE_FOOTER_SHEET_NAME = "Invoice footer";
 
 // sheet helpers
 
-export function getSheetData(sheetName: string): object[][] {
+export function getSheetData(sheetName: string): string[][] {
   try {
     console.log("getSheetData", sheetName);
     const spreadsheet = SpreadsheetApp.getActive();
     const namedSheet = spreadsheet.getSheetByName(sheetName);
     namedSheet.activate();
-    const values = namedSheet.getDataRange().getValues();
+    const values = namedSheet.getDataRange().getDisplayValues();
     return values.slice(1); // remove header row
   } catch (e) {
     console.error(e, sheetName);
@@ -101,6 +101,7 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   newSheet.autoResizeColumns(1, paddedValues[0].length);
 
   // add formulas
+  console.log("adding formulas rules:", data.formulas);
   data.formulas.forEach((formulaData) => {
     const formulaRange = getRangeFromArray(newSheet, formulaData.range);
 
@@ -110,6 +111,7 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   });
 
   // validation rules
+  console.log("adding validation rules:", data.validation);
   data.validation.forEach((validationData) => {
     const validationRange = getRangeFromArray(newSheet, validationData.range);
     const rule = SpreadsheetApp.newDataValidation()
@@ -278,52 +280,60 @@ function createInvoiceSheet(invoice: ISheetData, admins) {
     createNewSheet(name, invoice, protections);
 }
 
-function getItemTotal(purchased, shareCost) {
-  const result = Math.round( (purchased * shareCost) * 100 ) / 100;
-  console.log("getItemTotal", purchased, shareCost, result);
-  return result;
-}
+const isItemRow = (idx, orderFormData) => idx > 0 && idx < orderFormData.length - 1;
+const hasPurchases = (row, buyerIdx) => parseInt(row[buyerIdx], 10) > 0;
 
 export function getBuyerItems(orderFormData, buyerIdx) {
     return orderFormData.filter((row, idx) => {
-        return idx > 0 && parseInt(row[buyerIdx], 10) > 0;
+        return isItemRow(idx, orderFormData) && hasPurchases(row, buyerIdx);
     }).map((r) => {
-        const itemTotal = getItemTotal(r[buyerIdx], r[5]);
         return [
             r[1], // 'Item',
             r[4], // 'Share size',
             r[5], // 'Share cost'
             r[buyerIdx], // 'Purchased',
-            itemTotal, // 'Totals'
         ];
     });
 }
 
-function getTotalRow(buyerItems) {
-  const total = buyerItems.reduce((t: number, item) => t + item[4], 0);
+function getTotalRow() {
   return [
     "",
     "",
     "",
     "Total Due",
-    total,
   ];
+}
+
+export function getBuyerCol(buyerData, buyer) {
+  return orderSheetColumns.length + buyerData.findIndex((row) => row[0] === buyer[0]);
 }
 
 export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): ISheetData[] {
     const invoices: ISheetData[] = buyerData.filter((b, bIdx) => {
-        const bOrderColIdx = orderSheetColumns.length + bIdx;
+        const bOrderColIdx = getBuyerCol(orderFormData, b);
         const bItems = getBuyerItems(orderFormData, bOrderColIdx);
 
         console.log("buyer filter:", bIdx, bItems.length, b[0]);
         return bItems.length > 0;
       })
       .map((buyer, buyerIdx): ISheetData  => {
-        const buyerOrderColIdx = orderSheetColumns.length + buyerIdx;
+        const buyerOrderColIdx = getBuyerCol(buyerData, buyer);
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
-        const totalRow = getTotalRow(buyerItems);
+        console.log("buyer map:", buyerIdx, buyerItems.length, buyer[0]);
+        const itemTotals = buyerItems.map(() => {
+          return `=R[0]C[-1] * R[0]C[-2] `;
+        });
+        const totalRow = getTotalRow();
+        const invoiceTotal = [`=SUM(R[-${buyerItems.length}]C[0])`];
         return {
-          formulas: [],
+          formulas: [{
+            formulaValues: [[...itemTotals]],
+            range: [2, invoiceColumns.length, buyerItems.length, 1],
+          }, {
+            formulaValues: [invoiceTotal],
+            range: [buyerItems.length + 2, invoiceColumns.length, 1, 1],
+          }],
           validation: [],
           values: [
             buyer.slice(1, 3),

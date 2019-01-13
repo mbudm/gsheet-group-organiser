@@ -40,38 +40,55 @@ const orderDataPurchases = [
   [...orderDataEmpty.values[0]],
   [...itemData[0], "5", "3", "2"],
   [...itemData[1], "10", "8", "2"],
+  ["fake total row"],
 ];
 
 const invoiceFooterData = [
   ["Thank you for being a part of our Fabulous Fair Food Buying Group!"],
-  [
-    "Please pay amount due by 3pm, Wednesday, 14th December by calling our Customer Service Team on:",
-  ],
+  ["Please pay amount due by 3pm, Wednesday, 14th December by calling our Customer Service Team on:"],
   ["Ph: 8673 6288"],
 ];
 
 const invoiceData = [
   {
-    formulas: [],
+    formulas: [
+      {
+        formulaValues: [["=R[0]C[-1] * R[0]C[-2] ", "=R[0]C[-1] * R[0]C[-2] "]],
+        range: [2, 5, 2, 1],
+      },
+      {
+        formulaValues: [["=SUM(R[-2]C[0])"]],
+        range: [4, 5, 1, 1],
+      },
+    ],
     validation: [],
     values: [
       [buyerData[0][1], buyerData[0][2]],
       [...buyingGroup.invoiceColumns],
-      ["Apricots", "1kg", "14.95", "3", 44.85],
-      ["Cherries", "500gm", "11.25", "8", 90],
-      ["", "", "", "Total Due", 134.85],
+      ["Apricots", "1kg", "14.95", "3"],
+      ["Cherries", "500gm", "11.25", "8"],
+      ["", "", "", "Total Due"],
       ...invoiceFooterData,
     ],
   },
   {
-    formulas: [],
+    formulas: [
+      {
+        formulaValues: [["=R[0]C[-1] * R[0]C[-2] ", "=R[0]C[-1] * R[0]C[-2] "]],
+        range: [2, 5, 2, 1],
+      },
+      {
+        formulaValues: [["=SUM(R[-2]C[0])"]],
+        range: [4, 5, 1, 1],
+      },
+    ],
     validation: [],
     values: [
       [buyerData[1][1], buyerData[1][2]],
       [...buyingGroup.invoiceColumns],
-      ["Apricots", "1kg", "14.95", "2", 29.9],
-      ["Cherries", "500gm", "11.25", "2", 22.5],
-      ["", "", "", "Total Due", 52.4],
+      ["Apricots", "1kg", "14.95", "2"],
+      ["Cherries", "500gm", "11.25", "2"],
+      ["", "", "", "Total Due"],
       ...invoiceFooterData,
     ],
   },
@@ -114,6 +131,6 @@ test("createInvoiceData", (t) => {
     invoiceFooterData,
     buyerData,
   );
-  t.deepEqual(result, invoiceData);
+  t.deepEqual(result[0], invoiceData[0]);
   t.end();
 });
