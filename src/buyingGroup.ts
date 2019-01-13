@@ -36,6 +36,70 @@ const BUYERS_SHEET_NAME = "Buyers";
 const ADMINS_SHEET_NAME = "Admin users";
 const INVOICE_FOOTER_SHEET_NAME = "Invoice footer";
 
+// event handlers
+
+function onOpen() {
+  // ensure base sheets are restricted to admins
+  updateBaseSheetProtections();
+
+  if (isAdminUser()) {
+    const spreadsheet = SpreadsheetApp.getActive();
+    const menuItems = [
+        {name: "Create Order Sheet", functionName: "createOrderSheet_"},
+        {name: "Generate Invoices", functionName: "createInvoices_"},
+    ];
+    spreadsheet.addMenu("Buying Group", menuItems);
+  }
+}
+
+function onInstall(e) {
+  onOpen();
+}
+
+// admins
+
+function getAdminEmails() {
+  const adminData = getSheetData(ADMINS_SHEET_NAME);
+  return adminData.reduce((acc, val) => acc.concat(val), []);
+}
+
+export function isAdminUser() {
+  const spreadsheet = SpreadsheetApp.getActive();
+  const admins = getAdminEmails();
+  try {
+    // throws an exception if user is not an editor
+    const editors =  spreadsheet.getEditors();
+    // this user is an editor, are they also an admin?
+    const userEmail = Session.getActiveUser().getEmail();
+
+    return admins.indexOf(userEmail) >= 0;
+  } catch (e) {
+    console.error("isAdminUser error", e);
+    return false;
+  }
+}
+
+// menu event handlers
+
+function createInvoices_() {
+  const orderFormData = getSheetData(ORDER_FORM_SHEET_NAME);
+  const invoiceFooterData = getSheetData(INVOICE_FOOTER_SHEET_NAME);
+  const buyerData = getSheetData(BUYERS_SHEET_NAME);
+  const invoicesData = createInvoiceData(orderFormData, invoiceFooterData, buyerData);
+  const admins = getAdminEmails();
+  // write a new sheet for each invoice
+  invoicesData.forEach((invoice) => createInvoiceSheet(invoice, admins));
+}
+
+function createOrderSheet_() {
+  const itemData = getSheetData(ITEMS_SHEET_NAME);
+  const buyerData = getSheetData(BUYERS_SHEET_NAME);
+  const orderFormData = createOrderFormData(itemData, buyerData);
+  const admins = getAdminEmails();
+  const protections = getOrderSheetProtections(admins, buyerData, itemData);
+  createNewSheet(ORDER_FORM_SHEET_NAME, orderFormData, protections);
+}
+
 // sheet helpers
 
 export function getSheetData(sheetName: string): string[][] {
@@ -121,16 +185,7 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   });
 
   // protect all sheets by default
-  const sheetProtection = newSheet.protect().setDescription("Default generated sheet protection");
-  // remove all editors as they get added to new sheets by default
-  sheetProtection.removeEditors(sheetProtection.getEditors().map((user) => user.getEmail()));
-
-  // add all sheet editors
-  console.log("adding sheetEditors:", protections.sheetEditors);
-  protections.sheetEditors.forEach((editor) => {
-    ss.addEditors([editor]);
-    sheetProtection.addEditor(editor);
-  });
+  addSheetProtection(newSheet, `${name} sheet protection`, protections.sheetEditors, ss);
 
   // add all range protection
   console.log("adding range editors:", protections.rangeEditors);
@@ -157,31 +212,50 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   newSheet.autoResizeColumns(1, paddedValues[0].length);
 }
 
-// menu event handlers
+function addSheetProtection(sheet, desc, editors, ss) {
+  const sheetProtection = sheet.protect().setDescription(desc);
+  // remove all editors as they get added to new sheets by default
+  sheetProtection.removeEditors(sheetProtection.getEditors().map((user) => user.getEmail()));
 
-function createInvoices_() {
-    const orderFormData = getSheetData(ORDER_FORM_SHEET_NAME);
-    const invoiceFooterData = getSheetData(INVOICE_FOOTER_SHEET_NAME);
-    const buyerData = getSheetData(BUYERS_SHEET_NAME);
-    const invoicesData = createInvoiceData(orderFormData, invoiceFooterData, buyerData);
-    const admins = getAdminEmails();
-    // write a new sheet for each invoice
-    invoicesData.forEach((invoice) => createInvoiceSheet(invoice, admins));
+  // add all sheet editors
+  console.log("adding sheet editors:", editors, desc);
+  editors.forEach((editor) => {
+    ss.addEditors([editor]);
+    sheetProtection.addEditor(editor);
+  });
 }
 
-function createOrderSheet_() {
-    const itemData = getSheetData(ITEMS_SHEET_NAME);
-    const buyerData = getSheetData(BUYERS_SHEET_NAME);
-    const orderFormData = createOrderFormData(itemData, buyerData);
-    const admins = getAdminEmails();
-    const protections = getOrderSheetProtections(admins, buyerData, itemData);
-    createNewSheet(ORDER_FORM_SHEET_NAME, orderFormData, protections);
-}
+// base sheets
 
-// admins
-function getAdminEmails() {
-  const adminData = getSheetData(ADMINS_SHEET_NAME);
-  return adminData.reduce((acc, val) => acc.concat(val), []);
+function updateBaseSheetProtections() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const admins = getAdminEmails();
+  try {
+    [
+      ITEMS_SHEET_NAME,
+      BUYERS_SHEET_NAME,
+      ADMINS_SHEET_NAME,
+      INVOICE_FOOTER_SHEET_NAME,
+    ].forEach((sheetName) => {
+      const baseSheet = ss.getSheetByName(sheetName);
+      const protection = baseSheet.getProtections(SpreadsheetApp.ProtectionType.SHEET)[0];
+      if (protection) {
+        const editors = protection.getEditors();
+        editors.forEach((editor) => {
+           if (admins.indexOf(editor.getEmail()) === -1) {
+            console.log(`Removing ${editor.getEmail()} - not an admin ${admins}`);
+            protection.removeEditor(editor);
+          }
+        });
+        protection.addEditors(admins);
+      } else {
+        console.log(`Add protection for ${sheetName} with admins ${admins}`);
+        addSheetProtection(baseSheet, `${sheetName} protection`, admins, ss);
+      }
+    });
+  } catch (e) {
+    console.error("updateBaseSheetProtections", e);
+  }
 }
 
 // Order sheet
