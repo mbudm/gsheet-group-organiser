@@ -16,8 +16,8 @@ const orderDataEmpty = {
     {
       formulaValues: [
         [
-          "=SUMPRODUCT(R[-2]C[-3]:R[-1]C[-3], R[-2]C[0]:R[-1]C[0])",
-          "=SUMPRODUCT(R[-2]C[-4]:R[-1]C[-4], R[-2]C[0]:R[-1]C[0])",
+          "=DOLLAR(SUMPRODUCT(R[-2]C[-3]:R[-1]C[-3], R[-2]C[0]:R[-1]C[0]))",
+          "=DOLLAR(SUMPRODUCT(R[-2]C[-4]:R[-1]C[-4], R[-2]C[0]:R[-1]C[0]))",
         ],
       ],
       range: [4, 9, 1, 2],
@@ -53,12 +53,12 @@ const invoiceData = [
   {
     formulas: [
       {
-        formulaValues: [["=R[0]C[-1] * R[0]C[-2] ", "=R[0]C[-1] * R[0]C[-2] "]],
-        range: [2, 5, 2, 1],
+        formulaValues: [["=R[0]C[-1] * R[0]C[-2]"], ["=R[0]C[-1] * R[0]C[-2]"]],
+        range: [3, 5, 2, 1],
       },
       {
-        formulaValues: [["=SUM(R[-2]C[0])"]],
-        range: [4, 5, 1, 1],
+        formulaValues: [["=SUM(R[-2]C[0]:R[-1]C[0])"]],
+        range: [5, 5, 1, 1],
       },
     ],
     validation: [],
@@ -74,12 +74,12 @@ const invoiceData = [
   {
     formulas: [
       {
-        formulaValues: [["=R[0]C[-1] * R[0]C[-2] ", "=R[0]C[-1] * R[0]C[-2] "]],
-        range: [2, 5, 2, 1],
+        formulaValues: [[""], [""]],
+        range: [],
       },
       {
-        formulaValues: [["=SUM(R[-2]C[0])"]],
-        range: [4, 5, 1, 1],
+        formulaValues: [[""]],
+        range: [],
       },
     ],
     validation: [],
@@ -131,6 +131,8 @@ test("createInvoiceData", (t) => {
     invoiceFooterData,
     buyerData,
   );
-  t.deepEqual(result[0], invoiceData[0]);
+  t.deepEqual(result[0].formulas[0], invoiceData[0].formulas[0]);
+  t.deepEqual(result[0].formulas[1], invoiceData[0].formulas[1]);
+  t.deepEqual(result[0].values, invoiceData[0].values);
   t.end();
 });

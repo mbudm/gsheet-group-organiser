@@ -98,8 +98,6 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
   const rangeForValues = newSheet.getRange(1, 1, paddedValues.length, paddedValues[0].length);
   rangeForValues.setValues(paddedValues);
 
-  newSheet.autoResizeColumns(1, paddedValues[0].length);
-
   // add formulas
   console.log("adding formulas rules:", data.formulas);
   data.formulas.forEach((formulaData) => {
@@ -155,6 +153,8 @@ export function createNewSheet(name: string, data: ISheetData, protections: IPro
     const rangeProtectionType = rangeProtection.getProtectionType();
     console.log("range protection details", rangeNotation, rangeDescription, rangeEditorEmails, rangeProtectionType);
   });
+
+  newSheet.autoResizeColumns(1, paddedValues[0].length);
 }
 
 // menu event handlers
@@ -243,7 +243,8 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
   const totals = [];
   buyerData.forEach((b, idx) => {
     const col = idx + 3; // relative to share cost
-    totals.push(`=SUMPRODUCT(R[-${itemData.length}]C[-${col}]:R[-1]C[-${col}], R[-${itemData.length}]C[0]:R[-1]C[0])`);
+    // tslint:disable-next-line:max-line-length
+    totals.push(`=DOLLAR(SUMPRODUCT(R[-${itemData.length}]C[-${col}]:R[-1]C[-${col}], R[-${itemData.length}]C[0]:R[-1]C[0]))`);
   });
 
   const sharesRemaining = [];
@@ -276,7 +277,7 @@ function createInvoiceSheet(invoice: ISheetData, admins) {
       rangeEditors: [],
       sheetEditors: [...admins],
     };
-    const name = `Invoice' ${invoice.values[0][0]}`;
+    const name = `Invoice ${invoice.values[0][0]}`;
     createNewSheet(name, invoice, protections);
 }
 
@@ -314,17 +315,17 @@ export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): 
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
         console.log("buyer map:", buyerIdx, buyerItems.length, buyer[0]);
         const itemTotals = buyerItems.map(() => {
-          return `=R[0]C[-1] * R[0]C[-2] `;
+          return [`=R[0]C[-1] * R[0]C[-2]`];
         });
         const totalRow = getTotalRow();
-        const invoiceTotal = [`=SUM(R[-${buyerItems.length}]C[0])`];
+        const invoiceTotal = [`=SUM(R[-${buyerItems.length}]C[0]:R[-1]C[0])`];
         return {
           formulas: [{
-            formulaValues: [[...itemTotals]],
-            range: [2, invoiceColumns.length, buyerItems.length, 1],
+            formulaValues: [...itemTotals],
+            range: [3, invoiceColumns.length, buyerItems.length, 1],
           }, {
             formulaValues: [invoiceTotal],
-            range: [buyerItems.length + 2, invoiceColumns.length, 1, 1],
+            range: [buyerItems.length + 3, invoiceColumns.length, 1, 1],
           }],
           validation: [],
           values: buyerItems.length > 0 ? [
@@ -336,8 +337,9 @@ export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): 
           ] : [],
         };
     })
-    .filter((b) => {
-      return b.values.length > 0;
+    .filter((buyerInvoiceData, bIdx) => {
+      console.log("buyer filter:", bIdx, buyerInvoiceData.values.length, buyerData[bIdx][0]);
+      return buyerInvoiceData.values.length > 0;
     });
     return invoices;
 }
