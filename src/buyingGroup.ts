@@ -304,21 +304,13 @@ function getTotalRow() {
     "Total Due",
   ];
 }
-
-export function getBuyerCol(buyerData, buyer) {
-  return orderSheetColumns.length + buyerData.findIndex((row) => row[0] === buyer[0]);
+export function getBuyerCol(buyerIdx) {
+  return orderSheetColumns.length + buyerIdx;
 }
 
 export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): ISheetData[] {
-    const invoices: ISheetData[] = buyerData.filter((b, bIdx) => {
-        const bOrderColIdx = getBuyerCol(orderFormData, b);
-        const bItems = getBuyerItems(orderFormData, bOrderColIdx);
-
-        console.log("buyer filter:", bIdx, bItems.length, b[0]);
-        return bItems.length > 0;
-      })
-      .map((buyer, buyerIdx): ISheetData  => {
-        const buyerOrderColIdx = getBuyerCol(buyerData, buyer);
+    const invoices: ISheetData[] = buyerData.map((buyer, buyerIdx): ISheetData  => {
+        const buyerOrderColIdx = getBuyerCol(buyerIdx);
         const buyerItems = getBuyerItems(orderFormData, buyerOrderColIdx);
         console.log("buyer map:", buyerIdx, buyerItems.length, buyer[0]);
         const itemTotals = buyerItems.map(() => {
@@ -335,14 +327,17 @@ export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): 
             range: [buyerItems.length + 2, invoiceColumns.length, 1, 1],
           }],
           validation: [],
-          values: [
+          values: buyerItems.length > 0 ? [
             buyer.slice(1, 3),
             [...invoiceColumns],
             ...buyerItems,
             totalRow,
             ...invoiceFooterData,
-          ],
+          ] : [],
         };
+    })
+    .filter((b) => {
+      return b.values.length > 0;
     });
     return invoices;
 }
