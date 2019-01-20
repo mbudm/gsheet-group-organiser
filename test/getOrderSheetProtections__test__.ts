@@ -26,7 +26,7 @@ test("getOrderSheetProtections", (t) => {
         name: "buyerTwoherecom",
         range: [2, 10, 2],
       },
-      { range: [1, 4, 1, 10], editors: ["fred@there.com"], name: "totalRow" },
+      { range: [4, 1, 1, 10], editors: ["fred@there.com"], name: "totalRow" },
       { range: [1, 1, 1, 10], editors: ["fred@there.com"], name: "headingRow" },
       { range: [2, 1, 2, 8], editors: ["fred@there.com"], name: "itemsRange" },
     ],

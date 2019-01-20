@@ -274,11 +274,11 @@ export function getOrderSheetProtections(admin, buyers, itemData): IProtection {
       range,
     };
   });
-
+  // I'm always forgetting the getRange signature - row, col, numrows, numcols
   const totalRow: IRangeEditors = {
     editors: [...admin],
     name: "totalRow",
-    range: [1, itemData.length + 2, 1, orderSheetColumns.length + buyers.length],
+    range: [itemData.length + 2, 1, 1, orderSheetColumns.length + buyers.length],
   };
   const headingRow = {
     editors: [...admin],
