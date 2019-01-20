@@ -11,7 +11,7 @@ export interface ISheetData {
   values: Array<Array<number | string>>;
   formulas: IFormulas[];
   validation: IValidation[];
-  conditional: IConditional[];
+  // conditional: IConditional[];
 }
 
 export interface IFormulas {
@@ -24,12 +24,12 @@ export interface IValidation {
   helpText: string;
 }
 
-export interface IConditional {
-  range: number[];
-  conditions: ICondition[];
-}
+// export interface IConditional {
+//   range: number[];
+//   conditions: ICondition[];
+// }
 
-export interface ICondition {
-  textContains: string;
-  background: string;
-}
+// export interface ICondition {
+//   textContains: string;
+//   background: string;
+// }

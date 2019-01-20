@@ -1,5 +1,5 @@
 import {
-  IConditional,
+  // IConditional,
   IProtection,
   IRangeEditors,
   ISheetData,
@@ -321,18 +321,18 @@ export function getOrderSheetValidations(itemData, buyerData): IValidation[] {
   });
 }
 
-export function getSharesRemainConditional(range): IConditional {
-  return {
-    conditions: [{
-      background: "#FF0000",
-      textContains: "Error",
-    }, {
-      background: "#00CC00",
-      textContains: "Sold",
-    }],
-    range,
-  };
-}
+// export function getSharesRemainConditional(range): IConditional {
+//   return {
+//     conditions: [{
+//       background: "#FF0000",
+//       textContains: "Error",
+//     }, {
+//       background: "#00CC00",
+//       textContains: "Sold",
+//     }],
+//     range,
+//   };
+// }
 
 export function createOrderFormData(itemData, buyerData): ISheetData {
   const buyerHeadings = buyerData.map((buyer) => buyer[0]);
@@ -352,9 +352,9 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
   });
 
   const sharesRemainingRange = [2, orderSheetColumns.length, itemData.length];
-  const sharesRemainingConditional = getSharesRemainConditional(sharesRemainingRange);
+  // const sharesRemainingConditional = getSharesRemainConditional(sharesRemainingRange);
   return {
-    conditional: [sharesRemainingConditional],
+    // conditional: [],
     formulas: [
       {
         formulaValues: [[...totals]],
@@ -442,7 +442,7 @@ export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): 
         const totalRow = getTotalRow();
         const invoiceTotal = [`=SUM(R[-${buyerItems.length}]C[0]:R[-1]C[0])`];
         return {
-          conditional: [],
+          // conditional: [],
           formulas: [{
             formulaValues: [...itemTotals],
             range: [3, invoiceColumns.length, buyerItems.length, 1],

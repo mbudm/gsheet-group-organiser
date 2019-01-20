@@ -67,7 +67,7 @@ const invoiceFooterData = [
 
 const invoiceData: ISheetData[] = [
   {
-    conditional: [],
+    // conditional: [],
     formulas: [
       {
         formulaValues: [["=R[0]C[-1] * R[0]C[-2]"], ["=R[0]C[-1] * R[0]C[-2]"]],
@@ -89,7 +89,7 @@ const invoiceData: ISheetData[] = [
     ],
   },
   {
-    conditional: [],
+    // conditional: [],
     formulas: [
       {
         formulaValues: [[""], [""]],
@@ -116,7 +116,7 @@ test("createOrderFormData", (t) => {
   const result = buyingGroup.createOrderFormData(itemData, buyerData);
   t.deepEqual(result.values, orderDataEmpty.values);
   t.deepEqual(result.formulas, orderDataEmpty.formulas);
-  t.deepEqual(result.conditional, orderDataEmpty.conditional);
+  // t.deepEqual(result.conditional, orderDataEmpty.conditional);
   t.end();
 });
 
