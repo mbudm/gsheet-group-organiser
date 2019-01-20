@@ -323,7 +323,8 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
 
   const sharesRemaining = [];
   itemData.forEach(() => {
-    sharesRemaining.push([`=SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[${buyerData.length}])`]);
+    // tslint:disable-next-line:max-line-length
+    sharesRemaining.push([`=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[${buyerData.length}]), "n/a")`]);
   });
   return {
     formulas: [
@@ -347,7 +348,6 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
 export function SHARES_REMAINING(sharesAvailable, buyerShares) {
   const sharesSold = buyerShares[0].reduce(add, 0);
   const sharesRemaining = sharesAvailable - sharesSold;
-
   if (sharesRemaining === 0) {
     return "Sold";
   } else if (sharesRemaining < 0) {
