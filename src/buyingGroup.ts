@@ -1,4 +1,10 @@
-import { IProtection, IRangeEditors, ISheetData, IValidation } from "./types";
+import {
+  IConditional,
+  IProtection,
+  IRangeEditors,
+  ISheetData,
+  IValidation,
+} from "./types";
 
 export const itemsColumns = [
     "Supplier Code",
@@ -310,6 +316,19 @@ export function getOrderSheetValidations(itemData, buyerData): IValidation[] {
   });
 }
 
+export function getSharesRemainingConditionalFormatting(range): IConditional {
+  return {
+    conditions: [{
+      background: "#FF0000",
+      textContains: "Error",
+    }, {
+      background: "#00CC00",
+      textContains: "Sold",
+    }],
+    range,
+  };
+}
+
 export function createOrderFormData(itemData, buyerData): ISheetData {
   const buyerHeadings = buyerData.map((buyer) => buyer[0]);
   const headings = [...orderSheetColumns, ...buyerHeadings];
@@ -326,7 +345,11 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
     // tslint:disable-next-line:max-line-length
     sharesRemaining.push([`=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[${buyerData.length}]), "n/a")`]);
   });
+
+  const sharesRemainingRange = [2, orderSheetColumns.length, itemData.length];
+  const sharesRemainingConditional = getSharesRemainingConditionalFormatting(sharesRemainingRange);
   return {
+    conditional: [sharesRemainingConditional],
     formulas: [
       {
         formulaValues: [[...totals]],
@@ -334,7 +357,7 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
       },
       {
         formulaValues: [...sharesRemaining],
-        range: [2, orderSheetColumns.length, itemData.length],
+        range: sharesRemainingRange,
       },
     ],
     validation,
@@ -351,9 +374,9 @@ export function SHARES_REMAINING(sharesAvailable, buyerShares) {
   if (sharesRemaining === 0) {
     return "Sold";
   } else if (sharesRemaining < 0) {
-    return "Over sold!";
+    return "Error: Over limit";
   } else if (sharesRemaining % 1 !== 0) {
-    return "Portions not possible";
+    return "Error: Portions not possible";
   } else {
     return sharesRemaining;
   }
@@ -414,6 +437,7 @@ export function createInvoiceData(orderFormData, invoiceFooterData, buyerData): 
         const totalRow = getTotalRow();
         const invoiceTotal = [`=SUM(R[-${buyerItems.length}]C[0]:R[-1]C[0])`];
         return {
+          conditional: [],
           formulas: [{
             formulaValues: [...itemTotals],
             range: [3, invoiceColumns.length, buyerItems.length, 1],
