@@ -24,8 +24,8 @@ const orderDataEmpty = {
     },
     {
       formulaValues: [
-        ["=SHARES_REMAINING(R[0]C[-1]:R[0]C[2])"],
-        ["=SHARES_REMAINING(R[0]C[-1]:R[0]C[2])"],
+        ["=SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2])"],
+        ["=SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2])"],
       ],
       range: [2, 8, 2],
     },
