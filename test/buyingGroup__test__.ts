@@ -24,8 +24,8 @@ const orderDataEmpty = {
     },
     {
       formulaValues: [
-        ['=IF(ISNUMBER(R[0]C[-1]),R[0]C[-1] - SUM(R[0]C[1]:R[0]C[2]), "n/a")'],
-        ['=IF(ISNUMBER(R[0]C[-1]),R[0]C[-1] - SUM(R[0]C[1]:R[0]C[2]), "n/a")'],
+        ["=SHARES_REMAINING(R[0]C[-1]:R[0]C[2])"],
+        ["=SHARES_REMAINING(R[0]C[-1]:R[0]C[2])"],
       ],
       range: [2, 8, 2],
     },

@@ -323,7 +323,7 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
 
   const sharesRemaining = [];
   itemData.forEach(() => {
-    sharesRemaining.push([`=IF(ISNUMBER(R[0]C[-1]),R[0]C[-1] - SUM(R[0]C[1]:R[0]C[${buyerData.length}]), "n/a")`]);
+    sharesRemaining.push([`=SHARES_REMAINING(R[0]C[-1]:R[0]C[${buyerData.length}])`]);
   });
   return {
     formulas: [
@@ -342,6 +342,28 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
       ...itemData,
     ],
   };
+}
+
+export function SHARES_REMAINING(shareCellsRange) {
+  const sharesAvailable = shareCellsRange[0][0];
+  const buyerShares = shareCellsRange[0].slice(2);
+  const sharesSold = buyerShares.reduce(add, 0);
+  const sharesRemaining = sharesAvailable - sharesSold;
+
+  if (sharesRemaining === 0) {
+    return "Sold";
+  } else if (sharesRemaining < 0) {
+    return "Over sold!";
+  } else if (sharesRemaining % 1 !== 0) {
+    return "Portions not possible";
+  } else {
+    return sharesRemaining;
+  }
+}
+
+function add(sum, b) {
+  const parsed = parseFloat(b);
+  return isNaN(parsed) ? sum  : sum + parsed;
 }
 
 // invoice sheet
