@@ -321,7 +321,7 @@ export function getOrderSheetValidations(itemData, buyerData): IValidation[] {
   });
 }
 
-export function getSharesRemainingConditionalFormatting(range): IConditional {
+export function getSharesRemainConditional(range): IConditional {
   return {
     conditions: [{
       background: "#FF0000",
@@ -352,7 +352,7 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
   });
 
   const sharesRemainingRange = [2, orderSheetColumns.length, itemData.length];
-  const sharesRemainingConditional = getSharesRemainingConditionalFormatting(sharesRemainingRange);
+  const sharesRemainingConditional = getSharesRemainConditional(sharesRemainingRange);
   return {
     conditional: [sharesRemainingConditional],
     formulas: [
