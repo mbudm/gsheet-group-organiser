@@ -49,12 +49,17 @@ function onOpen() {
   updateBaseSheetProtections();
 
   if (isAdminUser()) {
-    const spreadsheet = SpreadsheetApp.getActive();
-    const menuItems = [
-        {name: "Create Order Sheet", functionName: "createOrderSheet_"},
-        {name: "Generate Invoices", functionName: "createInvoices_"},
-    ];
-    spreadsheet.addMenu("Buying Group", menuItems);
+    console.log("adding menu for admin user");
+    try {
+      const spreadsheet = SpreadsheetApp.getActive();
+      const menuItems = [
+          {name: "Create Order Sheet", functionName: "createOrderSheet_"},
+          {name: "Generate Invoices", functionName: "createInvoices_"},
+      ];
+      spreadsheet.addMenu("Buying Group", menuItems);
+    } catch (e) {
+      console.error("Error adding menu for admin user", e);
+    }
   }
 }
 

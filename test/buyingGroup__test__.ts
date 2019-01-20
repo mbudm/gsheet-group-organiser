@@ -4,12 +4,12 @@ import { ISheetData } from "../src/types";
 
 const itemData = [
   [1, "Apricots", "5kg", "74.75", "1kg", "14.95", "5"],
-  [2, "Cherries", "5kg", "112.50", "500gm", "11.25", "10"]
+  [2, "Cherries", "5kg", "112.50", "500gm", "11.25", "10"],
 ];
 
 const buyerData = [
   ["friendly name", "Full Name", "full.name@email.com", "+6143 212 345"],
-  ["another buyer", "Ms A. Buyer, esq.", "a.buyer@email.com", "6143123456"]
+  ["another buyer", "Ms A. Buyer, esq.", "a.buyer@email.com", "6143123456"],
 ];
 
 const orderDataEmpty = {
@@ -27,42 +27,42 @@ const orderDataEmpty = {
       formulaValues: [
         [
           "=DOLLAR(SUMPRODUCT(R[-2]C[-3]:R[-1]C[-3], R[-2]C[0]:R[-1]C[0]))",
-          "=DOLLAR(SUMPRODUCT(R[-2]C[-4]:R[-1]C[-4], R[-2]C[0]:R[-1]C[0]))"
-        ]
+          "=DOLLAR(SUMPRODUCT(R[-2]C[-4]:R[-1]C[-4], R[-2]C[0]:R[-1]C[0]))",
+        ],
       ],
-      range: [4, 9, 1, 2]
+      range: [4, 9, 1, 2],
     },
     {
       formulaValues: [
         [
-          '=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2]), "n/a")'
+          '=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2]), "n/a")',
         ],
         [
-          '=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2]), "n/a")'
-        ]
+          '=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2]), "n/a")',
+        ],
       ],
-      range: [2, 8, 2]
-    }
+      range: [2, 8, 2],
+    },
   ],
   values: [
     [...buyingGroup.orderSheetColumns, buyerData[0][0], buyerData[1][0]],
-    ...itemData
-  ]
+    ...itemData,
+  ],
 };
 
 const orderDataPurchases = [
   [...orderDataEmpty.values[0]],
   [...itemData[0], "5", "3", "2"],
   [...itemData[1], "10", "8", "2"],
-  ["fake total row"]
+  ["fake total row"],
 ];
 
 const invoiceFooterData = [
   ["Thank you for being a part of our Fabulous Fair Food Buying Group!"],
   [
-    "Please pay amount due by 3pm, Wednesday, 14th December by calling our Customer Service Team on:"
+    "Please pay amount due by 3pm, Wednesday, 14th December by calling our Customer Service Team on:",
   ],
-  ["Ph: 8673 6288"]
+  ["Ph: 8673 6288"],
 ];
 
 const invoiceData: ISheetData[] = [
@@ -71,12 +71,12 @@ const invoiceData: ISheetData[] = [
     formulas: [
       {
         formulaValues: [["=R[0]C[-1] * R[0]C[-2]"], ["=R[0]C[-1] * R[0]C[-2]"]],
-        range: [3, 5, 2, 1]
+        range: [3, 5, 2, 1],
       },
       {
         formulaValues: [["=SUM(R[-2]C[0]:R[-1]C[0])"]],
-        range: [5, 5, 1, 1]
-      }
+        range: [5, 5, 1, 1],
+      },
     ],
     validation: [],
     values: [
@@ -85,20 +85,20 @@ const invoiceData: ISheetData[] = [
       ["Apricots", "1kg", "14.95", "3"],
       ["Cherries", "500gm", "11.25", "8"],
       ["", "", "", "Total Due"],
-      ...invoiceFooterData
-    ]
+      ...invoiceFooterData,
+    ],
   },
   {
     conditional: [],
     formulas: [
       {
         formulaValues: [[""], [""]],
-        range: []
+        range: [],
       },
       {
         formulaValues: [[""]],
-        range: []
-      }
+        range: [],
+      },
     ],
     validation: [],
     values: [
@@ -107,12 +107,12 @@ const invoiceData: ISheetData[] = [
       ["Apricots", "1kg", "14.95", "2"],
       ["Cherries", "500gm", "11.25", "2"],
       ["", "", "", "Total Due"],
-      ...invoiceFooterData
-    ]
-  }
+      ...invoiceFooterData,
+    ],
+  },
 ];
 
-test("createOrderFormData", t => {
+test("createOrderFormData", (t) => {
   const result = buyingGroup.createOrderFormData(itemData, buyerData);
   t.deepEqual(result.values, orderDataEmpty.values);
   t.deepEqual(result.formulas, orderDataEmpty.formulas);
@@ -120,10 +120,10 @@ test("createOrderFormData", t => {
   t.end();
 });
 
-test("getBuyerItems - 1st buyer", t => {
+test("getBuyerItems - 1st buyer", (t) => {
   const result = buyingGroup.getBuyerItems(
     orderDataPurchases,
-    buyingGroup.orderSheetColumns.length
+    buyingGroup.orderSheetColumns.length,
   );
   const expected = invoiceData[0].values.slice(2);
   t.equal(result.length, 2);
@@ -132,10 +132,10 @@ test("getBuyerItems - 1st buyer", t => {
   t.end();
 });
 
-test("getBuyerItems - 2nd buyer", t => {
+test("getBuyerItems - 2nd buyer", (t) => {
   const result = buyingGroup.getBuyerItems(
     orderDataPurchases,
-    buyingGroup.orderSheetColumns.length + 1
+    buyingGroup.orderSheetColumns.length + 1,
   );
   const expected = invoiceData[1].values.slice(2);
   t.equal(result.length, 2);
@@ -144,11 +144,11 @@ test("getBuyerItems - 2nd buyer", t => {
   t.end();
 });
 
-test("createInvoiceData", t => {
+test("createInvoiceData", (t) => {
   const result = buyingGroup.createInvoiceData(
     orderDataPurchases,
     invoiceFooterData,
-    buyerData
+    buyerData,
   );
   t.deepEqual(result[0].formulas[0], invoiceData[0].formulas[0]);
   t.deepEqual(result[0].formulas[1], invoiceData[0].formulas[1]);
