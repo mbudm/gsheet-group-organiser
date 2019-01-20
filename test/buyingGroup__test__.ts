@@ -1,5 +1,6 @@
 import * as test from "tape";
 import * as buyingGroup from "../src/buyingGroup";
+import { ISheetData } from "../src/types";
 
 const itemData = [
   [1, "Apricots", "5kg", "74.75", "1kg", "14.95", "5"],
@@ -24,8 +25,12 @@ const orderDataEmpty = {
     },
     {
       formulaValues: [
-        ['=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2]), "n/a")'],
-        ['=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2]), "n/a")'],
+        [
+          '=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2]), "n/a")',
+        ],
+        [
+          '=IF(ISNUMBER(R[0]C[-1]), SHARES_REMAINING(R[0]C[-1],R[0]C[1]:R[0]C[2]), "n/a")',
+        ],
       ],
       range: [2, 8, 2],
     },
@@ -45,11 +50,13 @@ const orderDataPurchases = [
 
 const invoiceFooterData = [
   ["Thank you for being a part of our Fabulous Fair Food Buying Group!"],
-  ["Please pay amount due by 3pm, Wednesday, 14th December by calling our Customer Service Team on:"],
+  [
+    "Please pay amount due by 3pm, Wednesday, 14th December by calling our Customer Service Team on:",
+  ],
   ["Ph: 8673 6288"],
 ];
 
-const invoiceData = [
+const invoiceData: ISheetData[] = [
   {
     formulas: [
       {
