@@ -346,14 +346,18 @@ export function createOrderFormData(itemData, buyerData): ISheetData {
 }
 
 export function SHARES_REMAINING(sharesAvailable, buyerShares) {
+  const negativeSharesCheck = buyerShares[0].some( (val) => parseInt(val, 10) < 0 );
+  if (negativeSharesCheck) {
+    return "Error: Negative amount found";
+  }
   const sharesSold = buyerShares[0].reduce(add, 0);
   const sharesRemaining = sharesAvailable - sharesSold;
   if (sharesRemaining === 0) {
     return "Sold";
   } else if (sharesRemaining < 0) {
-    return "Over sold!";
+    return "Error: Over limit!";
   } else if (sharesRemaining % 1 !== 0) {
-    return "Portions not possible";
+    return "Error: Portions not possible";
   } else {
     return sharesRemaining;
   }

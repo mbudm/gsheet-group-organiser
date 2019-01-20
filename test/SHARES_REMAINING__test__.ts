@@ -28,7 +28,7 @@ test("SHARES_REMAINING - invalid - fraction", (t) => {
 
   const result = SHARES_REMAINING(sharesAvailable, range);
 
-  t.equal(result, "Portions not possible");
+  t.equal(result, "Error: Portions not possible");
   t.end();
 });
 
@@ -46,7 +46,7 @@ test("SHARES_REMAINING - invalid - over sold", (t) => {
 
   const result = SHARES_REMAINING(sharesAvailable, range);
 
-  t.equal(result, "Over sold!");
+  t.equal(result, "Error: Over limit!");
   t.end();
 });
 
@@ -56,5 +56,14 @@ test("SHARES_REMAINING - valid - sold", (t) => {
   const result = SHARES_REMAINING(sharesAvailable, range);
 
   t.equal(result, "Sold");
+  t.end();
+});
+
+test("SHARES_REMAINING - invalid - negative", (t) => {
+  const range = [[4, 1, -2, 1]];
+
+  const result = SHARES_REMAINING(sharesAvailable, range);
+
+  t.equal(result, "Error: Negative amount found");
   t.end();
 });
